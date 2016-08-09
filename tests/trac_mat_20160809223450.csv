@@ -1,0 +1,56 @@
+"Rapport de traçabilité";
+Généré le 09/08/2016 22:34:50;
+
+"1/ Matrice de traçabilité";
+"ID Fichier";"Nb Exigences";"Couverture";"Nb Erreurs";"Path Fichier";
+"SysRS";"3";"55.5556 %";"1";"/home/fanch/Projets/Rekkix/tests/./SysRS.docx";
+"SysVP";"4";"NA";"2";"/home/fanch/Projets/Rekkix/tests/./SysVP.docx";
+
+
+"2/ Erreurs trouvées dans l'analyse des fichiers";
+"Sévérité";"Catégorie";"Localisation";"Description";
+"Erreur";"Cohérence";"SysVP";"Redéfinition de TF_FUNC_001, préalablement définie dans SysVP";
+"Alerte";"Cohérence";"SysRS";"Exigence attendue mais jamais définie : SysRS_EX_fromNoWhere";
+"Alerte";"Cohérence";"SysVP";"Exigence attendue mais jamais définie : Tperf_Blah";
+
+
+
+"3/ Détails de traçabilité des fichiers";
+
+"SysRS";
+
+"Hiérarchie documentaire";
+"Documents amonts";"Ce document";"Documents avals";
+"";"SysRS";"SysVP ";
+
+
+"Couverture du fichier";
+"Exigence";"Est composée de";"A un taux de couverture";"Est couverte par";"Qui est définie dans";
+"SysRS_SUBFUNC_EX001";"";"100 %";"ST_FUNC";"SysRS";
+"SysRS_SUBFUNC_EX002";"";"0 %";"";"";
+"SysRS_FUNC_EX003";"SysRS_SUBFUNC_EX001 SysRS_SUBFUNC_EX002 SysRS_EX_fromNoWhere ";"66.6667 %";"";"";
+
+
+
+
+
+
+"SysVP";
+
+"Hiérarchie documentaire";
+"Documents amonts";"Ce document";"Documents avals";
+"SysRS ";"SysVP";"";
+
+
+
+
+"Couverture réalisée par le fichier";
+"Exigence";"Est composée de";"Couvre l'exigence";"Qui est définie dans";
+"TF_FUNC_001";"";"";"";
+"TF_FUNC_002";"";"";"";
+"ST_FUNC";"TF_FUNC_001 TF_FUNC_002 Tperf_Blah ";"SysRS_SUBFUNC_EX001 ";"SysRS ";
+"TF_FUNC_003";"";"SysRS_EX_fromNoWhere ";" ";
+
+
+
+

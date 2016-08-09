@@ -1,0 +1,8 @@
+
+.PHONY : makefiles, deploy
+
+makefiles :
+	qmake -makefile rekkix.pro
+	
+deploy :
+	windeployqt --release --no-quick-import --dir ./deploy/ --force --compiler-runtime --no-webkit2 --no-angle --no-opengl-sw ./bin/rekkix.exe
