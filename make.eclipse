@@ -1,8 +1,13 @@
 
-.PHONY : makefiles, deploy
-
-makefiles :
+.PHONY: makefiles
+makefiles:
 	qmake -makefile rekkix.pro
-	
-deploy :
+
+.PHONY: deploy
+deploy:
 	windeployqt --release --no-quick-import --dir ./deploy/ --force --compiler-runtime --no-webkit2 --no-angle --no-opengl-sw ./bin/rekkix.exe
+
+.PHONY: doxydoc
+doxydoc:
+	doxygen Doxyfile
+
