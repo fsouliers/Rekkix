@@ -40,3 +40,4 @@ CMakeLists.txt.user
 /.settings/
 /.cproject
 /.project
+/doxydoc_generation.log

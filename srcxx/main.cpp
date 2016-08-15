@@ -1,3 +1,10 @@
+/*!
+ * \file main.cpp
+ * \brief start of the program
+ * \date 2016-07-15
+ * \author f.souliers
+ */
+
 #include <QApplication>
 #include <QString>
 
@@ -9,24 +16,26 @@
 
 int main(int argc, char *argv[])
 {
-	Q_INIT_RESOURCE(rekkix); // Corresponding to rekkix.qrc
+	Q_INIT_RESOURCE(rekkix);  // Corresponding to rekkix.qrc
 
 	QApplication app(argc, argv);
 	app.setApplicationVersion(APP_VERSION);
 
-	RekkixPtr qp ;
-	if ( argc == 2 )
+	RekkixPtr oRekkix;
+	if (argc == 2)
 	{
 		// The argument given is the file that has to be opened
-		qp = new Rekkix(&app, argv[1]) ;
+		oRekkix = new Rekkix(&app, argv[1]);
+
+		//TODO Implement a real batch mode --> if no error in the configuration, automatically run analysis & generate report
 	}
 	else
 	{
-		// There is no file to open automaticaly
-		qp = new Rekkix(&app) ;
+		// There is no file to open automatically
+		oRekkix = new Rekkix(&app);
 	}
 
-	qp->show() ;
+	oRekkix->show();
 
-	return(app.exec());
+	return (app.exec());
 }

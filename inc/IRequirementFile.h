@@ -1,20 +1,8 @@
-/*
- * IRequirementFile.h
- *
- *  Created on: 15 juil. 2016
- *      Author: f.souliers
- *
- *  D'une façon ou une autre, un fichier de requirement a une structure suivante :
- *  PATTERN_EXIGENCE 1
- *
- *  bla bla bla bla bla
- *  pattern_couverture PATTERN_EXIGENCE_COUVERTE, PATTERN_EXIGENCE_COUVERTE
- *
- *  bla bla bla bla bla
- *  pattern_couverture PATTERN_EXIGENCE_COUVERTE
- *
- *  PATTERN_EXIGENCE 2
- *  ...
+/*!
+ * \file IRequirementFile.h
+ * \brief Definition of the abstract class IRequirementFile
+ * \date 2016-08-15
+ * \author f.souliers
  */
 
 #ifndef IREQUIREMENTFILE_H_
@@ -24,168 +12,303 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
-
 #include "ModelConfiguration.h"
 #include "Requirement.h"
 
 /*!
- * Abstract class used to define the common behaviours and attributes of all the documents containing
- * requirements.
+ * \class IRequirementFile
+ * \brief Abstract class used to define the common behaviors and attributes of every document containing
+ *        requirements.
  *
- * REQ_ID1
- * Composed of : REQ_ID2, REQ_ID3
- * Covers : REQ_ID4, REQ_ID5
+ * This class cannot be used directly: it must be subclassed to implement the parsing of a specifing file
+ * format.
+ *
+ * From a general point of view, a requirement file is composed of many things almost totally uninteresting ;)
+ * except text parts such as :
+ * > REQ_ID1<br/>
+ * > Composed of : REQ_ID2, REQ_ID3<br/>
+ * > Covers : REQ_ID4, REQ_ID5<br/>
+ * > Blah blah blah blah blah
+ *
+ * This must be understood as <i>"In this file, there is a requirement named REQ_ID1 which is composed of
+ * REQ_ID2 and REQ_ID3. Furthermore, this requirement REQ_ID1 covers the upstream requirements REQ_ID4 and
+ * REQ_ID5."</i> <br/>
+ * <i>Blah blah blah</i>  is the real description of the requirement. By now, Rekkix does not interpret at all this
+ * part of the file and will start interpreting a new requirement when the requirement regex
+ * (see ModelConfiguration::REQFILE_ATTR_REQREGEX) matches again.
  */
 class IRequirementFile
 {
 public:
-	IRequirementFile(ModelConfiguration::XmlAttributesMap_t& p_cnfFile);
+	/*!
+	 * \brief Constructor for the non pure abstract part of the class
+	 * \param[in]  p_cnfFile   Map of the configuration XML attributes for this particular file.
+	 *
+	 * This constructor also initialize the patterns for all the regular expressions needed in file parsing
+	 * step.
+	 */
+	IRequirementFile(ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+
+	/*!
+	 * \brief Destructor of the class, does nothing special.
+	 */
 	virtual ~IRequirementFile();
 
-	/**
-	 * TODO make some explanations ...
+	/*!
+	 * \brief method called by Rekkix internals to parse a file containing requirements
+	 *
+	 * This methods must call several methods of ModelSngReqMatrix to load the requirements
+	 * that have been identified during parsing.
+	 *
+	 * \see RequirementFile_docx for examples of implementation of this method
 	 */
-	virtual void parseFile() = 0 ;
+	virtual void parseFile() = 0;
 
 	/*!
-	 * true if a CMP regex has been defined, else false
+	 * \brief Test if a CMP regex has been defined
+	 * \return true if a CMP regex has been defined, else false
+	 * \see ModelConfiguration::REQFILE_ATTR_CMPREGEX
 	 */
-	bool hasCmpRegex() { return(! _cnfFile[ModelConfiguration::REQFILE_ATTR_CMPREGEX].isEmpty()) ; }
+	bool hasCmpRegex() const
+	{
+		return (!_cnfFile[ModelConfiguration::REQFILE_ATTR_CMPREGEX].isEmpty());
+	}
 
 	/*!
-	 * true if a COV regex has been defined, else false
+	 * \brief Test if a COV regex has been defined
+	 * \return true if a COV regex has been defined, else false
+	 * \see ModelConfiguration::REQFILE_ATTR_COVREGEX
 	 */
-	bool hasCovRegex() { return(! _cnfFile[ModelConfiguration::REQFILE_ATTR_COVREGEX].isEmpty()) ; }
+	bool hasCovRegex() const
+	{
+		return (!_cnfFile[ModelConfiguration::REQFILE_ATTR_COVREGEX].isEmpty());
+	}
 
 	/*!
-	 * true if a stopafter regex has been defined, else false
+	 * \brief Test if a stopafter regex has been defined
+	 * \return true if a stopafter regex has been defined, else false
+	 * \see ModelConfiguration::REQFILE_ATTR_STOPAFTERREGEX
 	 */
-	bool hasStopAfterRegex() { return(! _cnfFile[ModelConfiguration::REQFILE_ATTR_STOPAFTERREGEX].isEmpty()) ; }
+	bool hasStopAfterRegex() const
+	{
+		return (!_cnfFile[ModelConfiguration::REQFILE_ATTR_STOPAFTERREGEX].isEmpty());
+	}
 
 	/*!
-	 * returns the id of this file as configured in the XML configuration file
+	 * \brief getter for the XML attribute ModelConfiguration::REQFILE_ATTR_ID
+	 * \return the id of this file as configured in the XML configuration file
 	 */
-	QString getFileId() const { return(_cnfFile[ModelConfiguration::REQFILE_ATTR_ID]) ; }
+	QString getFileId() const
+	{
+		return (_cnfFile[ModelConfiguration::REQFILE_ATTR_ID]);
+	}
 
 	/*!
-	 * returns the file absolute path of this file as configured in the XML configuration file
+	 * \brief getter for the XML attribute ModelConfiguration::REQFILE_ATTR_PATH
+	 * \return the file absolute path of this file as configured in the XML configuration file
 	 * (see ModelConfiguration::setFile)
 	 */
-	QString getFilePath() const { return(_cnfFile[ModelConfiguration::REQFILE_ATTR_PATH]) ; }
+	QString getFilePath() const
+	{
+		return (_cnfFile[ModelConfiguration::REQFILE_ATTR_PATH]);
+	}
 
 	/*!
-	 * returns wether the document must have downstream documents or not (if not, it means that not
-	 * any requirement of the document has to be covered)
+	 * \brief getter for the expected presence of downstream documents
+	 * \return
+	 * - true if, according to the configuration file, this document must have downstream documents
+	 * - false else. In this case, it means that not any requirement of this document has to be covered
+	 *
+	 * TODO confirm wether it is an error or not to have covered requirements in a document that shouldn't have downstream document
 	 */
-	bool mustHaveDownstreamDocuments() const { return(_cnfFile[ModelConfiguration::REQFILE_ATTR_HASDWN] == ModelConfiguration::REQFILE_ATTR_VALUE_YES) ; }
-
-	bool mustHaveUpstreamDocuments() const { return(_cnfFile[ModelConfiguration::REQFILE_ATTR_HASUP] == ModelConfiguration::REQFILE_ATTR_VALUE_YES) ; }
-
+	bool mustHaveDownstreamDocuments() const
+	{
+		return (_cnfFile[ModelConfiguration::REQFILE_ATTR_HASDWN] == ModelConfiguration::REQFILE_ATTR_VALUE_YES);
+	}
 
 	/*!
-	 * During coverage processing, add a requirement to the number of requirements of the file
-	 * and update the average coverage of the file.
-	 * p_coverage : coverage of the requirement to add, so it is possible for the method to
-	 * calculate the new value of _avgCoverage
+	 * \brief getter for the expected presence of upstream documents
+	 * \return
+	 * - true if, according to the configuration file, this document must have upstream documents
+	 * - false else. In this case, it means that not any requirement of this document is covering another one
+	 *
+	 * TODO confirm the presence of the consistency check
 	 */
-	void addOneMoreRequirementCoverage(double p_coverage) ;
-
-
-	void addUpstreamDocument (const QString& p_fileId, IRequirementFile* p_file) ;
-	QMap<QString, IRequirementFile*> getUpstreamDocuments() const { return(_upstreamDocs) ; }
-
-	void addDownstreamDocument (const QString& p_fileId, IRequirementFile* p_file) ;
-	QMap<QString, IRequirementFile*> getDownstreamDocuments() const { return(_downstreamDocs) ; }
-
+	bool mustHaveUpstreamDocuments() const
+	{
+		return (_cnfFile[ModelConfiguration::REQFILE_ATTR_HASUP] == ModelConfiguration::REQFILE_ATTR_VALUE_YES);
+	}
 
 	/*!
-	 * Get the current value of the coverage for the file
+	 * \brief Adds a confirmed requirement and its coverage
+	 * \param[in] p_coverage  Coverage of the requirement to add, so it is possible for the method to
+	 *                        calculate the new value of _avgCoverage
+	 *
+	 * During file parsing phase, it is impossible to store the number of requirements as the knowledge of
+	 * all the requirements is mandatory to ensure the consistency of its definition. For instance a
+	 * requirement defined several times is an error and must not be taken into account in file coverage.
+	 *
+	 * As a consequence, during coverage processing, this method should be used to add a requirement that has no
+	 * error to the number of requirements of the file and update the average coverage of the file.
 	 */
-	double getCoverage() const {return(_avgCoverage) ;}
+	void addOneMoreRequirementCoverage(double p_coverage);
 
 	/*!
+	 * \brief Stores a pointer to a requirement file, considering the pointed file is an upstream document
+	 *        for the current one.
+	 * \param[in] p_fileId  Unique ID of the file
+	 * \param[in] p_file    Pointer to the corresponding requirement file object
+	 */
+	void addUpstreamDocument(const QString& p_fileId, IRequirementFile* p_file);
+
+	/*!
+	 * \brief Getter for the upstream documents of this file
+	 * \return
+	 * The map of all the upstream documents of this file:
+	 * - the key of the map is the unique ID of the file
+	 * - the value is the pointer to the corresponding file object
+	 */
+	QMap<QString, IRequirementFile*> getUpstreamDocuments() const
+	{
+		return (_upstreamDocs);
+	}
+
+	/*!
+	 * \brief Stores a pointer to a requirement file, considering the pointed file is a downstream document
+	 *        for the current one.
+	 * \param[in] p_fileId  Unique ID of the file
+	 * \param[in] p_file    Pointer to the corresponding requirement file object
+	 */
+	void addDownstreamDocument(const QString& p_fileId, IRequirementFile* p_file);
+
+	/*!
+	 * \brief Getter for the downstream documents of this file
+	 * \return
+	 * The map of all the downstream documents of this file:
+	 * - the key of the map is the unique ID of the file
+	 * - the value is the pointer to the corresponding file object
+	 */
+	QMap<QString, IRequirementFile*> getDownstreamDocuments() const
+	{
+		return (_downstreamDocs);
+	}
+
+	/*!
+	 * \brief Getter of the current value of the coverage for this file
+	 * \return The last known value for the average coverage calculated for this file
+	 */
+	double getCoverage() const
+	{
+		return (_avgCoverage);
+	}
+
+	/*!
+	 * \brief Setter for the requirements defined in this file
+	 * \param[in] p Vector of requirements that must be considered as all the requirements defined in this file
+	 *
 	 * This method is called by the generic layer of the software once the file has been parsed,
-	 * see ReqMatrix::addRequirementFile
+	 * see ModelSngReqMatrix::addRequirementFile. The main goal of processing requirements in this way is
+	 * to avoid any multi-definition of requirements: the vector p only contains pointers to requirements defined
+	 * only once.
 	 */
-	void setRequirements(const QVector<Requirement*>& p) {_requirements = p ;}
+	void setRequirements(const QVector<Requirement*>& p)
+	{
+		_requirements = p;
+	}
 
-	const QVector<Requirement*>& getRequirements() const {return(_requirements) ;}
-
+	/*!
+	 * \brief Getter for the requirements defined in this file
+	 * \return
+	 * The vector of pointers to the requirement objects defined in this file
+	 */
+	const QVector<Requirement*>& getRequirements() const
+	{
+		return (_requirements);
+	}
 
 protected:
 	/*!
-	 * Number of requirements identified in the file. This value is not intended to be set during
-	 * parsing of the file --> to avoid misprogramming of parsers, they only take care of parsing
-	 * files. This value is computed during coverage computation when all the requirements of all
-	 * the files are known and usable by the common abstract part of the software
-	 * (see ReqMatrix::computeCoverage)
+	 * \brief Number of requirements identified in the file.
+	 *
+	 * This value is not intended to be set during parsing of the file. Indeed, to avoid misprogramming of
+	 * parsers, those RequirementFile_xxx (eg RequirementFile_docx) must only take care of parsing files.
+	 * This value is computed during coverage computation when all the requirements of all the files are
+	 * known and usable by the common abstract part of the software (see ModelSngReqMatrix::computeCoverage)
 	 */
-	int _nbReqs ;
+	int _nbReqs;
 
 	/*!
-	 * Sum of requirements coverage. This attribute is calculated during
-	 * coverage computing.
+	 * \brief Sum of requirements coverage.
+	 *
+	 * This attribute is calculated during coverage computing.
 	 */
-	double _sumOfCov ;
+	double _sumOfCov;
 
 	/*!
-	 * Average coverage ... _sumOfCov / _nbReqs ... at the end of coverage
-	 * computing
+	 * \brief Average coverage ... _sumOfCov / _nbReqs ... at the end of coverage computing
 	 */
-	double _avgCoverage ;
+	double _avgCoverage;
 
 	/*!
-	 * Requirement File as seen in the configuration file : id, path, patterns ...
+	 * \brief Requirement File as seen in the configuration file : id, path, patterns ...
 	 */
-	ModelConfiguration::XmlAttributesMap_t _cnfFile ;
+	ModelConfiguration::XmlConfiguredFileAttributesMap_t _cnfFile;
 
 	/*!
-	 * Regular expression used to match the requirements in the document,
-	 * see ModelConfiguration::REQFILE_ATTR_REQREGEX
+	 * \brief Regular expression used to match the requirements in the document.
+	 * \see ModelConfiguration::REQFILE_ATTR_REQREGEX
 	 */
-	QRegularExpression _regexReq ;
+	QRegularExpression _regexReq;
 
 	/*!
-	 * Regular expression used to match the beginning of a list of requirements composing the current one
-	 * see ModelConfiguration::REQFILE_ATTR_CMPREGEX
+	 * \brief Regular expression used to match the beginning of a list of requirements composing the current one
+	 * \see ModelConfiguration::REQFILE_ATTR_CMPREGEX
 	 */
-	QRegularExpression _regexCmp ;
+	QRegularExpression _regexCmp;
 
 	/*!
-	 * Regular expression used to match a the beginning of a list of covered requirements by the current one
-	 * see ModelConfiguration::REQFILE_ATTR_COVREGEX
+	 * \brief Regular expression used to match a the beginning of a list of covered requirements by the current one
+	 * \see ModelConfiguration::REQFILE_ATTR_COVREGEX
 	 */
-	QRegularExpression _regexCov ;
+	QRegularExpression _regexCov;
 
 	/*!
-	 * Regular expression used to match the regex indicating the end of file parsing
-	 * see ModelConfiguration::REQFILE_ATTR_STOPAFTERREGEX
+	 * \brief Regular expression used to match the regex indicating the end of file parsing
+	 * \see ModelConfiguration::REQFILE_ATTR_STOPAFTERREGEX
 	 */
-	QRegularExpression _regexStopAfter ;
+	QRegularExpression _regexStopAfter;
 
 	/*!
-	 * Map of upstream files. It means vector of files for which the current one is covering at least
+	 * \brief Map of upstream files.
+	 *
+	 * It means the map of pointers to files for which the current one is covering at least
 	 * one requirement.
 	 * - key : file id as defined in the XML configuration
 	 * - value : pointer to the requirement file
 	 */
-	QMap<QString, IRequirementFile*> _upstreamDocs ;
+	QMap<QString, IRequirementFile*> _upstreamDocs;
 
 	/*!
-	 * Map of downstream files. It means vector of files for which at least a requirement is covering a requirement
+	 * \brief Map of downstream files.
+	 *
+	 * It means map of pointers to files for which at least a requirement is covering a requirement
 	 * of the current file.
 	 * - key : file id as defined in the XML configuration
 	 * - value : pointer to the requirement file
 	 */
-	QMap<QString, IRequirementFile*> _downstreamDocs ;
+	QMap<QString, IRequirementFile*> _downstreamDocs;
 
 	/*!
 	 * requirements read after parsing (automatically set by the abstract layer)
 	 */
-	QVector<Requirement*> _requirements ;
+	QVector<Requirement*> _requirements;
 
 };
 
-typedef IRequirementFile* IRequirementFilePtr ;
+/*!
+ * \typedef IRequirementFilePtr
+ * \brief Just to make the code easier to type when a pointer to IRequirementFile is required
+ */
+typedef IRequirementFile* IRequirementFilePtr;
 
 #endif /* IREQUIREMENTFILE_H_ */
