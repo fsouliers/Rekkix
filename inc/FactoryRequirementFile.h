@@ -17,8 +17,11 @@
  * Once Rekkix has parsed the configuration file, it is able to instantiate the adequate file parsers
  * for each configured file according to its file extension.
  *
- * TODO Using QSetting, Rekkix should know which extension must trigger the use of which parser
- *      (for example, *.txt or *.tex or *.cpp files will use the same "plain text" parser)
+ * Available parser are :
+ * - docx : parse the file as a MS Word file
+ * - odt : parse the file as a LibreOffice text file --> TODO : not implemented yet
+ * - txt : parse the file as a plain text file
+ * - pdf : parse the file as a pdf file --> TODO : not implemented yet
  */
 class FactoryRequirementFile
 {
@@ -35,15 +38,19 @@ public:
 
 	/*!
 	 * \brief Build a new RequirementFile and returns a pointer on it
+	 *
+	 * If the parser isn't specified in the configuration, then the factory will try to detect the parser to
+	 * use from the filename given.
 	 * \warning The factory does not delete this new object at any time: the caller shall be responsible
 	 *          for that.
 	 * \param[in] p_cnfFile  list of the XML attributes and their value for the file. In particular,
-	 *                       ModelConfiguration::REQFILE_ATTR_PATH shall be used to detect which
+	 *                       ModelConfiguration::REQFILE_ATTR_PATH and
+	 *                       ModelConfiguration::REQFILE_ATTR_PARSER shall be used to detect which
 	 *                       RequirementFile_xxx must be used.
 	 * \return
-	 * A pointer to the freshly built requirement file object.
+	 * A pointer to the freshly built requirement file object or null if no parser seems acceptable
 	 */
-	static IRequirementFilePtr getRequirementFile(ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+	static IRequirementFilePtr getRequirementFile(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
 };
 
 #endif /* FACTORYREQUIREMENTFILE_H_ */

@@ -10,7 +10,6 @@
 
 #include "zip.h"
 
-#include "ModelSngReqMatrix.h"
 #include "ModelSngAnalysisErrors.h"
 #include "RequirementFile_docx.h"
 #include "Requirement.h"
@@ -26,7 +25,7 @@ static char ZIP_BUFFER[ZIP_BUFFER_SIZE];  //!< 1MB char array, used to read the 
 static const QString DOCX_XML_PARAGRAPH_NODE = "p";  //!< MS Word specific XML tag for paragraph
 static const QString DOCX_XML_TEXT_NODE = "t";  //!< MS Word specific XML tag for text
 
-RequirementFile_docx::RequirementFile_docx(ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile)
+RequirementFile_docx::RequirementFile_docx(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile)
 		: IRequirementFile(p_cnfFile)
 {
 }
@@ -131,82 +130,37 @@ void RequirementFile_docx::parseFile()
 			}
 		}
 
-		// If the «requirement definition» regex matches, this requirement must be stored in the global requirement matrix
-		QRegularExpressionMatch req_m = _regexReq.match(data);
-		if (req_m.hasMatch())
+		// If the «requirement definition» regex matches, then nothing more to do with this line
+		if (_hasRequirementDefinition(data, current_req, isCurrentReqAcceptable))
 		{
-			// the real requirement is only the matching part of the regex (index 0 of the list)
-			data = req_m.capturedTexts()[0];
-
-			qDebug() << "RequirementFile_docx::parseFile : Identified requirement definition :" << data;
-
-			Requirement r(data, Requirement::Defined);
-			r.setLocation(this);
-			r.setMustBeCovered(mustHaveDownstreamDocuments());
-			current_req = data;
-
-			// If the requirement has already been defined, the global Matrix handles itself the error log
-			isCurrentReqAcceptable = ModelSngReqMatrix::instance().addDefinedRequirement(_cnfFile[ModelConfiguration::REQFILE_ATTR_ID], r);
-
-			// Go on XML reading : there must not be something else on the current paragraph
 			xstr.readNext();
-			continue;
+			continue ;
 		}
 
-		// If the the «composed of several requirements» regex matches, those must be stored in the global
-		// requirement matrix as expected requirements (if already defined, the global matrix handles it)
+		// If the the «composed of several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCmpRegex())
 		{
-			QRegularExpressionMatch cmp_m = _regexCmp.match(data);
-			if (cmp_m.hasMatch())
+			if (_hasExpectedCompositeRequirements(data, current_req))
 			{
-				// remove the matched regex so tmp only contains requirement ids separated by
-				// ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
-				QString tmp = data.remove(0, cmp_m.capturedEnd());
-
-				foreach(QString s, tmp.split(_cnfFile[ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR]))
-				{
-
-					qDebug() << "RequirementFile_docx::parseFile :" << current_req << "is composed of" << s.trimmed();
-					Requirement r(s.trimmed(), Requirement::Expected, _cnfFile[ModelConfiguration::REQFILE_ATTR_ID]);
-					ModelSngReqMatrix::instance().addExpectedCompositeRequirement(_cnfFile[ModelConfiguration::REQFILE_ATTR_ID], current_req, r);
-				}
-
-				// Go on XML reading : there must not be something else on the current paragraph
 				xstr.readNext();
-				continue;
+				continue ;
 			}
 		}
 
-		// If the the «composed of several requirements» regex matches, those must be stored in the global
-		// requirement matrix as expected requirements (if already defined, the global matrix handles it)
+		// If the the «covering several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCovRegex())
 		{
-			QRegularExpressionMatch cov_m = _regexCov.match(data);
-			if (cov_m.hasMatch())
+			if (_hasExpectedUpstreamRequirements(data, current_req))
 			{
-				// remove the matched regex so tmp only contains requirement ids separated by
-				// ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
-				QString tmp = data.remove(0, cov_m.capturedEnd());
-
-				foreach(QString s, tmp.split(_cnfFile[ModelConfiguration::REQFILE_ATTR_COVSEPARATOR]))
-				{
-					qDebug() << "RequirementFile_docx::parseFile :" << current_req << "covers" << s.trimmed();
-					Requirement r(s.trimmed(), Requirement::Expected, _cnfFile[ModelConfiguration::REQFILE_ATTR_ID]);
-					ModelSngReqMatrix::instance().addExpectedCoveredRequirement(_cnfFile[ModelConfiguration::REQFILE_ATTR_ID], current_req, r);
-				}
-
-				// Go on XML reading : there must not be something else on the current paragraph
 				xstr.readNext();
-				continue;
+				continue ;
 			}
 		}
 
 		// if the stopAfter regex is reached, then stop parsing the file
 		if (hasStopAfterRegex())
 		{
-			QRegularExpressionMatch sm_m = _regexStopAfter.match(data);
-			if (sm_m.hasMatch()) break;
+			if (_mustStopParsing(data)) break ;
 		}
 
 		xstr.readNext();

@@ -123,7 +123,7 @@ bool ModelSngReqMatrix::addDefinedRequirement(const QString& file_id, Requiremen
 }
 
 void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& file_id,
-                                                        QString& p_parentId,
+                                                        const QString& p_parentId,
                                                         RequirementRef p_r)
 {
 	// The method has been called while there is no consistent «current requirement» parsing
@@ -150,7 +150,7 @@ void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& file_id,
 }
 
 void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& file_id,
-                                                      QString& p_reqId,
+                                                      const QString& p_reqId,
                                                       RequirementRef p_coveredReq)
 {
 	// The method has been called while there is no consistent «current requirement» parsing

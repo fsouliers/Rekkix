@@ -47,7 +47,7 @@ public:
 	 * This constructor also initialize the patterns for all the regular expressions needed in file parsing
 	 * step.
 	 */
-	IRequirementFile(ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+	IRequirementFile(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
 
 	/*!
 	 * \brief Destructor of the class, does nothing special.
@@ -303,6 +303,56 @@ protected:
 	 */
 	QVector<Requirement*> _requirements;
 
+	/*!
+	 * \brief Checks if the text matches the req_regex
+	 * \param[in] p_text  Text to be checked
+	 * \param[out] p_reqfound  If the regex matches, then it contains the requirement identified.
+	 *                         If the regex doesn't match, it contains an empty string
+	 * \param[out] p_reqAcceptable  true if the identified requirement has been accepted by the matrix,
+	 *                              false if the global matrix rejected the requirement
+	 * \return
+	 * - true if the regex matched
+	 * - false else
+	 */
+	bool _hasRequirementDefinition(const QString& p_text, QString& p_reqfound, bool& p_reqAcceptable);
+
+	/*!
+	 * \brief Checks if the text matches the cmp_regex
+	 *
+	 * If the «composed of several requirements» regex matches, then those must be stored in the global
+	 * matrix (ModelSngReqMatrix) as expected requirements (if they are already defined, then
+	 * ModelSngReqMatrix handles it)
+	 * \param[in] p_text  Text to be checked
+	 * \param[in] p_parentReqId  The requirement id of the parent of the composite requirements that are going
+	 *                       to be stored
+	 * \return
+	 * - true if the regex matched
+	 * - false else
+	 */
+	bool _hasExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId);
+
+	/*!
+	 * \brief Checks if the text matches the cov_regex
+	 *
+	 * If the «covering several requirements» regex matches, then those must be stored in the global
+	 * matrix (ModelSngReqMatrix) as expected requirements (if they are already defined, then
+	 * ModelSngReqMatrix handles it)
+	 * \param[in] p_text  Text to be checked
+	 * \param[in] p_currentReqId  The current requirement id (it means the one covering the upstream requirements)
+	 * \return
+	 * - true if the regex matched
+	 * - false else
+	 */
+	bool _hasExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId) ;
+
+	/*!
+	 * \brief checks whether the "Stop After" regex has been reached
+	 * \param[in] p_text  Text to be checked
+	 * \return
+	 * - true if the regex matched
+	 * - false else
+	 */
+	bool _mustStopParsing(const QString& p_text) ;
 };
 
 /*!

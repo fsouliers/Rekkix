@@ -22,7 +22,7 @@ public:
 	 * \brief Constructor of the class, does nothing special
 	 * \param[in] p_cnfFile Map of the XML attributes configured for this file (ID, path of the file ...)
 	 */
-	RequirementFile_docx(ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+	RequirementFile_docx(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
 
 	/*!
 	 * \brief Destructor of the class, does nothing

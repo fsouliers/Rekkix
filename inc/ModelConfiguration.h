@@ -71,10 +71,27 @@ public:
 
 	static const QString REQFILE_ATTR_ID;  //!< XML Attribute name for the file ID
 	static const QString REQFILE_ATTR_PATH;  //!< XML Attribute name for the file path
+	static const QString REQFILE_ATTR_PARSER;  //!< XML Attribute name for the parser that must be used to read the file, see FactoryRequirementFile for available parsers
 	static const QString REQFILE_ATTR_REQREGEX;  //!< XML Attribute name for the regex used to identify a requirement
-	static const QString REQFILE_ATTR_CMPREGEX;  //!< XML Attribute name for tthe regex used to identify the composing requirements list
+
+	/*!
+	 * \brief XML Attribute name for the regex used to identify the composing requirements list
+	 *
+	 * This regex must be built in such a way that only the composing requirement list is captured as a
+	 * group. In other words, group 1 of the regex must be the list of composing requirements separated by
+	 * REQFILE_ATTR_CMPSEPARATOR
+	 */
+	static const QString REQFILE_ATTR_CMPREGEX;
 	static const QString REQFILE_ATTR_CMPSEPARATOR;  //!< XML Attribute name for the separator character in the composing requirements list
-	static const QString REQFILE_ATTR_COVREGEX;  //!< XML Attribute name for tthe regex used to identify the upstream requirements list (the ones that are covered)
+
+	/*!
+	 * \brief XML Attribute name for tthe regex used to identify the upstream requirements list (the ones that are covered)
+	 *
+	 * This regex must be built in such a way that only the composing requirement list is captured as a
+	 * group. In other words, group 1 of the regex must be the list of composing requirements separated by
+	 * REQFILE_ATTR_COVSEPARATOR
+	 */
+	static const QString REQFILE_ATTR_COVREGEX;
 	static const QString REQFILE_ATTR_COVSEPARATOR;  //!< XML Attribute name for the separator character in the upstream requirements list
 	static const QString REQFILE_ATTR_STOPAFTERREGEX;  //!< XML Attribute name for the regex used to stop the parsing of the file
 	static const QString REQFILE_ATTR_HASDWN;  //!< XML Attribute name used to specify whether the file must have downstream documents

@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 <files>
-	<file id="SysRS" path="./SysRS.docx" req_regex="^SysRS_[_A-Za-z0-9]{0,60}EX[0-9]{1,3}$"
-	                                     cmp_regex="^Composite of.*:\s*" cmp_separator=","
+<!-- TODO : Change the format in order to be able to use named groups to secure regex -->
+	<file id="SysRS" path="./SysRS.docx" parser="docx"
+	                                     req_regex="^SysRS_[_A-Za-z0-9]{0,60}EX[0-9]{1,3}$"
+	                                     cmp_regex="^Composite of.*:\s*(.*)$" cmp_separator=","
 	                                     stopafter_regex="StopReadingTheDocAfterMe"
 	                                     has_downstream="y" has_upstream="n"/>
 
 
-	<file id="SysVP" path="./SysVP.docx" req_regex="^(ST|TF|TPerf)_[_A-Za-z0-9]{1,80}$"
-	                                     cmp_regex="^Composite of.*:\s*" cmp_separator=","
-	                                     cov_regex="^Covers.*:\s*" cov_separator=","
+	<file id="SysVP" path="./SysVP.docx" parser="docx"
+	                                     req_regex="^(ST|TF|TPerf)_[_A-Za-z0-9]{1,80}$"
+	                                     cmp_regex="^Composite of.*:\s*(.*)$" cmp_separator=","
+	                                     cov_regex="^Covers.*:\s*(.*)$" cov_separator=","
 	                                     has_downstream="n" has_upstream="y"/>
 
 </files>

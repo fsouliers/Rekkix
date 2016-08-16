@@ -28,6 +28,7 @@ static const QString XML_NODE_OUTPUT("output");
 
 const QString ModelConfiguration::REQFILE_ATTR_ID("id");
 const QString ModelConfiguration::REQFILE_ATTR_PATH("path");
+const QString ModelConfiguration::REQFILE_ATTR_PARSER("parser");
 const QString ModelConfiguration::REQFILE_ATTR_REQREGEX("req_regex");
 const QString ModelConfiguration::REQFILE_ATTR_CMPREGEX("cmp_regex");
 const QString ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR("cmp_separator");
@@ -53,6 +54,7 @@ const QString ModelConfiguration::OUTPUT_STR_TIMESTAMP("REKKIXTIMESTAMP");
  */
 const QVector<QString> ModelConfiguration::XML_ATTRS { REQFILE_ATTR_ID,
                                                        REQFILE_ATTR_PATH,
+                                                       REQFILE_ATTR_PARSER,
                                                        REQFILE_ATTR_HASDWN,
                                                        REQFILE_ATTR_HASUP,
                                                        REQFILE_ATTR_REQREGEX,
@@ -69,6 +71,7 @@ const QVector<QString> ModelConfiguration::XML_ATTRS { REQFILE_ATTR_ID,
  */
 const QVector<QString> ModelConfiguration::XML_HEADER_ATTRS { QObject::trUtf8("ID"),
                                                               QObject::trUtf8("Fichier"),
+                                                              QObject::trUtf8("Analyseur"),
                                                               QObject::trUtf8("Est couvert ?"),
                                                               QObject::trUtf8("Est couvrant ?"),
                                                               QObject::trUtf8("Regex Exigence"),
@@ -367,6 +370,8 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 		}
 	}
 
+	// TODO when rewriting this big ball of mud --> check that the parser is acceptable or filename acceptable (in case there is no parser)
+
 	// Checking the req_regex attribute
 	if (configured_file[REQFILE_ATTR_REQREGEX].isEmpty())
 	{
@@ -410,6 +415,17 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_CMPREGEX);
 			errors.append(e);
 		}
+		else
+		{
+			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors cmp_regex nb of groups :" << regex.captureCount() ;
+			if (regex.captureCount() != 1)
+			{
+				e.severity = ModelConfigurationErrors::ERROR;
+				e.category = ModelConfigurationErrors::CONTENT;
+				e.description = QObject::trUtf8("Fichier %1, il doit y avoir un et un seul groupe défini dans la regex CMP : %2").arg(file_id).arg(configured_file[REQFILE_ATTR_CMPREGEX]);
+				errors.append(e);
+			}
+		}
 	}
 	else
 	{
@@ -442,6 +458,17 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 			e.category = ModelConfigurationErrors::CONTENT;
 			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_COVREGEX);
 			errors.append(e);
+		}
+		else
+		{
+			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors cov_regex nb of groups :" << regex.captureCount() ;
+			if (regex.captureCount() != 1)
+			{
+				e.severity = ModelConfigurationErrors::ERROR;
+				e.category = ModelConfigurationErrors::CONTENT;
+				e.description = QObject::trUtf8("Fichier %1, il doit y avoir un et un seul groupe défini dans la regex COV : %2").arg(file_id).arg(configured_file[REQFILE_ATTR_COVREGEX]);
+				errors.append(e);
+			}
 		}
 	}
 	else
