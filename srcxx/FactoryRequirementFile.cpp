@@ -44,7 +44,7 @@ FactoryRequirementFile::~FactoryRequirementFile()
 {
 }
 
-IRequirementFilePtr FactoryRequirementFile::getRequirementFile(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile)
+IRequirementFilePtr FactoryRequirementFile::getRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 {
 	IRequirementFilePtr retPtr = NULL ;
 

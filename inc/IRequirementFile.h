@@ -42,12 +42,12 @@ class IRequirementFile
 public:
 	/*!
 	 * \brief Constructor for the non pure abstract part of the class
-	 * \param[in]  p_cnfFile   Map of the configuration XML attributes for this particular file.
+	 * \param[in]  p_cnfFile   Map of the configuration attributes for this particular file.
 	 *
 	 * This constructor also initialize the patterns for all the regular expressions needed in file parsing
 	 * step.
 	 */
-	IRequirementFile(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+	IRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
 
 	/*!
 	 * \brief Destructor of the class, does nothing special.
@@ -95,8 +95,8 @@ public:
 	}
 
 	/*!
-	 * \brief getter for the XML attribute ModelConfiguration::REQFILE_ATTR_ID
-	 * \return the id of this file as configured in the XML configuration file
+	 * \brief getter for the attribute ModelConfiguration::REQFILE_ATTR_ID
+	 * \return the id of this file as configured in the configuration file
 	 */
 	QString getFileId() const
 	{
@@ -104,8 +104,8 @@ public:
 	}
 
 	/*!
-	 * \brief getter for the XML attribute ModelConfiguration::REQFILE_ATTR_PATH
-	 * \return the file absolute path of this file as configured in the XML configuration file
+	 * \brief getter for the attribute ModelConfiguration::REQFILE_ATTR_PATH
+	 * \return the file absolute path of this file as configured in the configuration file
 	 * (see ModelConfiguration::setFile)
 	 */
 	QString getFilePath() const
@@ -252,7 +252,7 @@ protected:
 	/*!
 	 * \brief Requirement File as seen in the configuration file : id, path, patterns ...
 	 */
-	ModelConfiguration::XmlConfiguredFileAttributesMap_t _cnfFile;
+	ModelConfiguration::CnfFileAttributesMap_t _cnfFile;
 
 	/*!
 	 * \brief Regular expression used to match the requirements in the document.
@@ -283,7 +283,7 @@ protected:
 	 *
 	 * It means the map of pointers to files for which the current one is covering at least
 	 * one requirement.
-	 * - key : file id as defined in the XML configuration
+	 * - key : file id as defined in the configuration
 	 * - value : pointer to the requirement file
 	 */
 	QMap<QString, IRequirementFile*> _upstreamDocs;
@@ -293,7 +293,7 @@ protected:
 	 *
 	 * It means map of pointers to files for which at least a requirement is covering a requirement
 	 * of the current file.
-	 * - key : file id as defined in the XML configuration
+	 * - key : file id as defined in the configuration
 	 * - value : pointer to the requirement file
 	 */
 	QMap<QString, IRequirementFile*> _downstreamDocs;

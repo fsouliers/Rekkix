@@ -9,7 +9,6 @@
 #define MODELCONFIGURATION_H_
 
 #include <QAbstractItemModel>
-#include <QFile>
 
 #include "ModelConfigurationErrors.h"
 
@@ -28,82 +27,85 @@ Q_OBJECT
 
 public:
 	/*!
-	 * \typedef XmlConfiguredFileAttributesMap_t
-	 * \brief Map of the attributes composing one file configured in the XML.
+	 * \typedef CnfFileAttributesMap_t
+	 * \brief Map of the values composing one file configured in a configuration file.
 	 *
 	 * The map elements are the following:
-	 * - key : attribute name that can be accessed (see XML_ATTRS and XML_OUTPUT_ATTRS)
+	 * - key : attribute name that can be accessed (see REQFILE_ATTRS and OUTPUT_ATTRS)
 	 * - value : value of the attribute
 	 */
 
-	typedef QMap<QString, QString> XmlConfiguredFileAttributesMap_t;
+	typedef QMap<QString, QString> CnfFileAttributesMap_t;
 
 	/*!
-	 * \typedef ConfiguredFileMapByFileId_t
-	 * \brief Map of the configured files in the XML.
+	 * \typedef CnfFileAttributesMapsByFileId_t
+	 * \brief Map of the requirement files in a configuration file.
 	 *
 	 * The map elements are the following:
 	 * - key : value of the attribute REQFILE_ATTR_ID (file id)
-	 * - value : XmlConfiguredFileAttributesMap_t for this file
+	 * - value : CnfFileAttributesMap_t for this file
 	 */
-	typedef QMap<QString, XmlConfiguredFileAttributesMap_t> ConfiguredFileMapByFileId_t;
+	typedef QMap<QString, CnfFileAttributesMap_t> CnfFileAttributesMapsByFileId_t;
 
 	/*!
 	 * \typedef OutputFiles_t
 	 * \brief Vector of the output files.
 	 *
-	 * Only the XML attributes differ between an output file and a requirement file.
+	 * Only the attributes names and list differ between an output file and a requirement file.
 	 */
-	typedef QVector<XmlConfiguredFileAttributesMap_t> OutputFiles_t;
+	typedef QVector<CnfFileAttributesMap_t> OutputFiles_t;
 
 	/*!
-	 * \brief Vector of XML attributes used to describe a requirement file
+	 * \brief Vector of attributes used to describe a requirement file
 	 */
-	static const QVector<QString> XML_ATTRS;
+	static const QVector<QString> REQFILE_ATTRS;
 
 	/*!
-	 * \brief Vector of headers to be displayed for XML attributes.
+	 * \brief Vector of headers to be displayed for requirement files attributes.
 	 *
-	 * This vector must be sorted in the same order as XML_ATTRS
+	 * This vector must be sorted in the same order as REQFILE_ATTRS
 	 */
-	static const QVector<QString> XML_HEADER_ATTRS;
+	static const QVector<QString> REQFILE_HEADER_ATTRS;
 
 
-	static const QString REQFILE_ATTR_ID;  //!< XML Attribute name for the file ID
-	static const QString REQFILE_ATTR_PATH;  //!< XML Attribute name for the file path
-	static const QString REQFILE_ATTR_PARSER;  //!< XML Attribute name for the parser that must be used to read the file, see FactoryRequirementFile for available parsers
-	static const QString REQFILE_ATTR_REQREGEX;  //!< XML Attribute name for the regex used to identify a requirement
+	static const QString REQFILE_ATTR_ID;  //!< Attribute name for the file ID (part of the setting name in the *.ini file)
+	static const QString REQFILE_ATTR_PATH;  //!< Attribute name for the file path
+	static const QString REQFILE_ATTR_PARSER;  //!< Attribute name for the parser that must be used to read the file, see FactoryRequirementFile for available parsers
+
+	static const QString REQFILE_ATTR_REQREGEX;  //!< Attribute name for the regex used to identify a requirement
+	static const QString REQFILE_GRPNAME_REQID;  //!< Name of the named group in the regex used to identify a requirement (req_name)
+	static const QString REQFILE_GRPNAME_REQLST;  //!< Name of the named group in the regex REQFILE_ATTR_CMPREGEX and REQFILE_ATTR_COVREGEX used to identify requirements lists
 
 	/*!
-	 * \brief XML Attribute name for the regex used to identify the composing requirements list
+	 * \brief Attribute name for the regex used to identify the composing requirements list
 	 *
 	 * This regex must be built in such a way that only the composing requirement list is captured as a
 	 * group. In other words, group 1 of the regex must be the list of composing requirements separated by
 	 * REQFILE_ATTR_CMPSEPARATOR
 	 */
 	static const QString REQFILE_ATTR_CMPREGEX;
-	static const QString REQFILE_ATTR_CMPSEPARATOR;  //!< XML Attribute name for the separator character in the composing requirements list
+	static const QString REQFILE_ATTR_CMPSEPARATOR;  //!< Attribute name for the separator character in the composing requirements list
 
 	/*!
-	 * \brief XML Attribute name for tthe regex used to identify the upstream requirements list (the ones that are covered)
+	 * \brief Attribute name for the regex used to identify the upstream requirements list (the ones that are covered)
 	 *
 	 * This regex must be built in such a way that only the composing requirement list is captured as a
 	 * group. In other words, group 1 of the regex must be the list of composing requirements separated by
 	 * REQFILE_ATTR_COVSEPARATOR
 	 */
 	static const QString REQFILE_ATTR_COVREGEX;
-	static const QString REQFILE_ATTR_COVSEPARATOR;  //!< XML Attribute name for the separator character in the upstream requirements list
-	static const QString REQFILE_ATTR_STOPAFTERREGEX;  //!< XML Attribute name for the regex used to stop the parsing of the file
-	static const QString REQFILE_ATTR_HASDWN;  //!< XML Attribute name used to specify whether the file must have downstream documents
-	static const QString REQFILE_ATTR_HASUP;  //!< XML Attribute name used to specify whether the file must have upstream documents
+	static const QString REQFILE_ATTR_COVSEPARATOR;  //!< Attribute name for the separator character in the upstream requirements list
+	static const QString REQFILE_ATTR_STOPAFTERREGEX;  //!< Attribute name for the regex used to stop the parsing of the file
+	static const QString REQFILE_ATTR_HASDWN;  //!< Attribute name used to specify whether the file must have downstream documents
+	static const QString REQFILE_ATTR_HASUP;  //!< Attribute name used to specify whether the file must have upstream documents
 
-	static const QString REQFILE_ATTR_VALUE_YES;  //!< XML attribute value Yes for REQFILE_ATTR_HASDWN and REQFILE_ATTR_HASUP
-	static const QString REQFILE_ATTR_VALUE_NO;  //!< XML attribute value No for REQFILE_ATTR_HASDWN and REQFILE_ATTR_HASUP
+	static const QString REQFILE_ATTR_VALUE_YES;  //!< Attribute value Yes for REQFILE_ATTR_HASDWN and REQFILE_ATTR_HASUP
+	static const QString REQFILE_ATTR_VALUE_NO;  //!< Attribute value No for REQFILE_ATTR_HASDWN and REQFILE_ATTR_HASUP
 
 	/*!
-	 * \brief Vector of XML attributes used to describe an output file
+	 * \brief Vector of attributes used to describe an output file
 	 */
-	static const QVector<QString> XML_OUTPUT_ATTRS;
+	static const QVector<QString> OUTPUT_ATTRS;
 
 	/*!
 	 * \brief List of file formats supported by Rekkix  (ie acceptable values for the OUTPUT_ATTR_WRITER attribute)
@@ -111,13 +113,13 @@ public:
 	static const QVector<QString> OUTPUT_SUPPORTED_EXT;
 
 
-	static const QString OUTPUT_ATTR_PATH;  //!< XML Attribute name for the file path
-	static const QString OUTPUT_ATTR_WRITER;  //!< XML Attribute name for the file format
-	static const QString OUTPUT_ATTR_DELIMITER;  //!< XML Attribute name for the field separator character, in case of csv-like format
+	static const QString OUTPUT_ATTR_PATH;  //!< Attribute name for the file path
+	static const QString OUTPUT_ATTR_WRITER;  //!< Attribute name for the file format
+	static const QString OUTPUT_ATTR_DELIMITER;  //!< Attribute name for the field separator character, in case of csv-like format
 
-	static const QString OUTPUT_ATTR_VALUE_HTML;  //!< XML Attribute value html for OUTPUT_ATTR_WRITER
-	static const QString OUTPUT_ATTR_VALUE_CSV;  //!< XML Attribute value csv for OUTPUT_ATTR_WRITER
-	static const QString OUTPUT_STR_TIMESTAMP;  //!< String in the path attribute value that shall be replaced by the timetamp
+	static const QString OUTPUT_ATTR_VALUE_HTML;  //!< Attribute value html for OUTPUT_ATTR_WRITER
+	static const QString OUTPUT_ATTR_VALUE_CSV;  //!< Attribute value csv for OUTPUT_ATTR_WRITER
+	static const QString OUTPUT_STR_TIMESTAMP;  //!< String in the path attribute value that shall be replaced by the timestamp
 
 
 	/*!
@@ -206,9 +208,9 @@ public:
 
 	/*!
 	 * \brief Getter for the configured requirement files
-	 * \return The map of the configured requirement files (see ConfiguredFileMapByFileId_t)
+	 * \return The map of the configured requirement files (see CnfFileAttributesMapsByFileId_t)
 	 */
-	ConfiguredFileMapByFileId_t getConfiguredRequirementFiles() const
+	CnfFileAttributesMapsByFileId_t getConfiguredRequirementFiles() const
 	{
 		return (__reqFiles);
 	}
@@ -223,12 +225,10 @@ public:
 	}
 
 private:
-	QFile __configFile;  //!< The configuration file itself
-
 	/*!
-	 * \brief Map of files containing requirements (see ConfiguredFileMapByFileId_t)
+	 * \brief Map of files containing requirements (see CnfFileAttributesMapsByFileId_t)
 	 */
-	ConfiguredFileMapByFileId_t __reqFiles;
+	CnfFileAttributesMapsByFileId_t __reqFiles;
 
 	/*!
 	 * \brief Vector of the output files (see OutputFiles_t)
@@ -236,7 +236,7 @@ private:
 	OutputFiles_t __outputFiles;
 
 	/*!
-	 * \brief Checks the consistency of the xml attributes of a given requirement file
+	 * \brief Checks the consistency of the attributes of a given requirement file
 	 *
 	 * The following rules are checked:
 	 * - the ID is mandatory
@@ -245,30 +245,47 @@ private:
 	 * - if cmp_regex mentioned, then cmp_separator is mandatory
 	 * - if cov_regex mentioned, then cov_separator is mandatory
 	 *
-	 * \param[in] configured_file  XML attributes map of the file that must be verified
-	 * \param[out] errModel        used to store every configuration error, so it can be displayed
+	 * \param[in] configured_file    attributes map of the file that must be verified
+	 * \param[inout] errModel        used to store every configuration error, so it can be displayed
 	 * \return
 	 * If the errModel parameter has been modified, then returns true; else returns false.
 	 */
-	bool __hasAReqFileConsistecyError(const XmlConfiguredFileAttributesMap_t& configured_file,
+	bool __hasAReqFileConsistecyError(const CnfFileAttributesMap_t& configured_file,
 	                                  ModelConfigurationErrorsRef errModel);
 
 	/*!
-	 * \brief Checks the consistency of the xml attributes of a given output file
+	 * \brief Checks the consistency of the attributes of a given output file
 	 *
 	 * The following rules are checked:
 	 * - the path is mandatory
 	 * - the writer is mandatory and must be a supported format
 	 * - if the writer is csv, then the delimiter is mandatory
 	 *
-	 * \param[in] output_file  XML attributes map of the file that must be verified
-	 * \param[out] errModel    used to store every configuration error, so it can be displayed
+	 * \param[in] output_file  attributes map of the file that must be verified
+	 * \param[inout] errModel    used to store every configuration error, so it can be displayed
 	 * \return
 	 * If the errModel parameter has been modified, then returns true; else returns false.
 	 */
-	bool __hasAnOutputFileConsistecyError(const XmlConfiguredFileAttributesMap_t& output_file,
+	bool __hasAnOutputFileConsistecyError(const CnfFileAttributesMap_t& output_file,
 	                                      ModelConfigurationErrorsRef errModel);
 
+	/*!
+	 * \brief Reads the <i>files</i> section of the configuration file
+	 * \warning The existence and the possibility to open the configuration file must have been
+	 *          checked before calling this method
+	 * \param[in] configFilePath  Path to the ini configuration file
+	 * \param[inout] errModel     used to store every configuration error, so it can be displayed
+	 */
+	void __readSectionFiles(const QString& configFilePath, ModelConfigurationErrorsRef errModel);
+
+	/*!
+	 * \brief Reads the <i>outputs</i> section of the configuration file
+	 * \warning The existence and the possibility to open the configuration file must have been
+	 *          checked before calling this method
+	 * \param[in] configFilePath  Path to the ini configuration file
+	 * \param[inout] errModel     used to store every configuration error, so it can be displayed
+	 */
+	void __readSectionOutputs(const QString& configFilePath, ModelConfigurationErrorsRef errModel);
 };
 
 /*!

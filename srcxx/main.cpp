@@ -5,6 +5,7 @@
  * \author f.souliers
  */
 
+#include <QDebug>
 #include <QApplication>
 #include <QString>
 

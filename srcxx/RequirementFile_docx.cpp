@@ -25,7 +25,7 @@ static char ZIP_BUFFER[ZIP_BUFFER_SIZE];  //!< 1MB char array, used to read the 
 static const QString DOCX_XML_PARAGRAPH_NODE = "p";  //!< MS Word specific XML tag for paragraph
 static const QString DOCX_XML_TEXT_NODE = "t";  //!< MS Word specific XML tag for text
 
-RequirementFile_docx::RequirementFile_docx(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile)
+RequirementFile_docx::RequirementFile_docx(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: IRequirementFile(p_cnfFile)
 {
 }

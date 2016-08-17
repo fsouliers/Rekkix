@@ -92,7 +92,7 @@ void Rekkix::slt_loadConfigurationFile()
 {
 	QString filename;
 
-	filename = QFileDialog::getOpenFileName(this, QObject::trUtf8("Choix du fichier à ouvrir"), ".", QObject::trUtf8("Fichiers XML (*.xml);;Tous (*.*)"));
+	filename = QFileDialog::getOpenFileName(this, QObject::trUtf8("Choix du fichier à ouvrir"), ".", QObject::trUtf8("Fichiers ini (*.ini);;Tous (*.*)"));
 
 	if (filename.size() > 0)
 	{
@@ -102,14 +102,14 @@ void Rekkix::slt_loadConfigurationFile()
 
 void Rekkix::slt_startAnalysis()
 {
-	ModelConfiguration::ConfiguredFileMapByFileId_t files = __cnfModel.getConfiguredRequirementFiles();
+	ModelConfiguration::CnfFileAttributesMapsByFileId_t files = __cnfModel.getConfiguredRequirementFiles();
 	int nbFiles = files.count();
 	int progbar_value = 1;  // immediately start updating the progress bar value
 	ModelSngReqMatrix::instance().clear();
 	ModelSngAnalysisErrors::instance().clear();
 
 	// 1st Step of analysis : reading and parsing all the files
-	ModelConfiguration::ConfiguredFileMapByFileId_t::iterator it;
+	ModelConfiguration::CnfFileAttributesMapsByFileId_t::iterator it;
 	int i;
 	for (it = files.begin(), i = 1; it != files.end() ; ++it, ++i)
 	{
@@ -184,7 +184,7 @@ void Rekkix::slt_generateReports()
 {
 	QDateTime reportTimestamp = QDateTime::currentDateTime();
 
-	foreach(ModelConfiguration::XmlConfiguredFileAttributesMap_t outFileDescription, __cnfModel.getOutputFiles()){
+	foreach(ModelConfiguration::CnfFileAttributesMap_t outFileDescription, __cnfModel.getOutputFiles()){
 	// Step 0 : prepare base file templates
 	QString writer = outFileDescription[ModelConfiguration::OUTPUT_ATTR_WRITER];
 	QString delimiter = outFileDescription[ModelConfiguration::OUTPUT_ATTR_DELIMITER];

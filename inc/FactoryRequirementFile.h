@@ -43,14 +43,14 @@ public:
 	 * use from the filename given.
 	 * \warning The factory does not delete this new object at any time: the caller shall be responsible
 	 *          for that.
-	 * \param[in] p_cnfFile  list of the XML attributes and their value for the file. In particular,
+	 * \param[in] p_cnfFile  list of the attributes and their value for the file. In particular,
 	 *                       ModelConfiguration::REQFILE_ATTR_PATH and
 	 *                       ModelConfiguration::REQFILE_ATTR_PARSER shall be used to detect which
 	 *                       RequirementFile_xxx must be used.
 	 * \return
 	 * A pointer to the freshly built requirement file object or null if no parser seems acceptable
 	 */
-	static IRequirementFilePtr getRequirementFile(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+	static IRequirementFilePtr getRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
 };
 
 #endif /* FACTORYREQUIREMENTFILE_H_ */

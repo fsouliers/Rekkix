@@ -107,7 +107,7 @@ public:
 
 	/*!
 	 * \brief Getter for the number of errors found in a given file
-	 * \param[in] p_fileId  File ID, as described in the XML configuration, for which the number of
+	 * \param[in] p_fileId  File ID, as described in the configuration, for which the number of
 	 *                      errors have to be retrieved.
 	 * \return
 	 * The number of errors found in the given file

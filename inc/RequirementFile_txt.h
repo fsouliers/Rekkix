@@ -20,9 +20,9 @@ public:
 
 	/*!
 	 * \brief Constructor of the class, does nothing special
-	 * \param[in] p_cnfFile Map of the XML attributes configured for this file (ID, path of the file ...)
+	 * \param[in] p_cnfFile Map of the attributes configured for this file (ID, path of the file ...)
 	 */
-	RequirementFile_txt(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile);
+	RequirementFile_txt(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
 
 	/*!
 	 * \brief Destructor of the class, does nothing

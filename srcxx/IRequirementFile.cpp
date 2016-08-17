@@ -11,7 +11,7 @@
 #include "ModelSngReqMatrix.h"
 #include "ModelSngAnalysisErrors.h"
 
-IRequirementFile::IRequirementFile(const ModelConfiguration::XmlConfiguredFileAttributesMap_t& p_cnfFile)
+IRequirementFile::IRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: _nbReqs(0), _sumOfCov(0.0), _avgCoverage(0.0), _cnfFile(p_cnfFile)
 {
 	// regex validy is verified while reading the configuration file, see ModelConfiguration

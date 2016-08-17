@@ -9,22 +9,22 @@
 #include <QDebug>
 #include <QFile>
 #include <QDir>
-#include <QXmlStreamReader>
-#include <QXmlStreamAttribute>
+#include <QFile>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QSettings>
 
 #include "ModelConfiguration.h"
 
 /*!
- * \brief XML node starting the definition of a requirement file
+ * \brief Section of the configuration file starting the definition of requirement files
  */
-static const QString XML_NODE_FILE("file");
+static const QString SECTION_REQFILES("files");
 
 /*!
- * \brief XML node starting the definition of an output file
+ * \brief Section of the configuration file starting the definition of an output file
  */
-static const QString XML_NODE_OUTPUT("output");
+static const QString SECTION_OUTPUT_FILES("outputs");
 
 const QString ModelConfiguration::REQFILE_ATTR_ID("id");
 const QString ModelConfiguration::REQFILE_ATTR_PATH("path");
@@ -39,6 +39,8 @@ const QString ModelConfiguration::REQFILE_ATTR_HASDWN("has_downstream");
 const QString ModelConfiguration::REQFILE_ATTR_HASUP("has_upstream");
 const QString ModelConfiguration::REQFILE_ATTR_VALUE_YES("y");
 const QString ModelConfiguration::REQFILE_ATTR_VALUE_NO("n");
+const QString ModelConfiguration::REQFILE_GRPNAME_REQID("req_id") ;
+const QString ModelConfiguration::REQFILE_GRPNAME_REQLST("req_lst") ;
 
 const QString ModelConfiguration::OUTPUT_ATTR_PATH("path");
 const QString ModelConfiguration::OUTPUT_ATTR_WRITER("writer");
@@ -48,45 +50,45 @@ const QString ModelConfiguration::OUTPUT_ATTR_VALUE_CSV("csv");
 const QString ModelConfiguration::OUTPUT_STR_TIMESTAMP("REKKIXTIMESTAMP");
 
 /*!
- * \brief Vector of XML attributes that has to be visible in the gui
+ * \brief Vector of attributes that has to be visible in the gui
  *
- * The order is important as it must be the same as the order of ModelConfiguration::XML_HEADER_ATTRS
+ * The order is important as it must be the same as the order of ModelConfiguration::REQFILE_HEADER_ATTRS
  */
-const QVector<QString> ModelConfiguration::XML_ATTRS { REQFILE_ATTR_ID,
-                                                       REQFILE_ATTR_PATH,
-                                                       REQFILE_ATTR_PARSER,
-                                                       REQFILE_ATTR_HASDWN,
-                                                       REQFILE_ATTR_HASUP,
-                                                       REQFILE_ATTR_REQREGEX,
-                                                       REQFILE_ATTR_CMPREGEX,
-                                                       REQFILE_ATTR_CMPSEPARATOR,
-                                                       REQFILE_ATTR_COVREGEX,
-                                                       REQFILE_ATTR_COVSEPARATOR,
-                                                       REQFILE_ATTR_STOPAFTERREGEX };
+const QVector<QString> ModelConfiguration::REQFILE_ATTRS { REQFILE_ATTR_ID,
+                                                           REQFILE_ATTR_PATH,
+                                                           REQFILE_ATTR_PARSER,
+                                                           REQFILE_ATTR_HASDWN,
+                                                           REQFILE_ATTR_HASUP,
+                                                           REQFILE_ATTR_REQREGEX,
+                                                           REQFILE_ATTR_CMPREGEX,
+                                                           REQFILE_ATTR_CMPSEPARATOR,
+                                                           REQFILE_ATTR_COVREGEX,
+                                                           REQFILE_ATTR_COVSEPARATOR,
+                                                           REQFILE_ATTR_STOPAFTERREGEX };
 
 /*!
- * \brief Vector of headers for XML attributes that has to be visible in the gui
+ * \brief Vector of headers for attributes that has to be visible in the gui
  *
- * The order is important as it must be the same as the order of ModelConfiguration::XML_ATTRS
+ * The order is important as it must be the same as the order of ModelConfiguration::REQFILE_ATTRS
  */
-const QVector<QString> ModelConfiguration::XML_HEADER_ATTRS { QObject::trUtf8("ID"),
-                                                              QObject::trUtf8("Fichier"),
-                                                              QObject::trUtf8("Analyseur"),
-                                                              QObject::trUtf8("Est couvert ?"),
-                                                              QObject::trUtf8("Est couvrant ?"),
-                                                              QObject::trUtf8("Regex Exigence"),
-                                                              QObject::trUtf8("Regex Composition"),
-                                                              QObject::trUtf8("Séparateur Composition"),
-                                                              QObject::trUtf8("Regex Couverture"),
-                                                              QObject::trUtf8("Séparateur Couverture"),
-                                                              QObject::trUtf8("Regex de fin d'analyse") };
+const QVector<QString> ModelConfiguration::REQFILE_HEADER_ATTRS { QObject::trUtf8("ID"),
+                                                                  QObject::trUtf8("Fichier"),
+                                                                  QObject::trUtf8("Analyseur"),
+                                                                  QObject::trUtf8("Est couvert ?"),
+                                                                  QObject::trUtf8("Est couvrant ?"),
+                                                                  QObject::trUtf8("Regex Exigence"),
+                                                                  QObject::trUtf8("Regex Composition"),
+                                                                  QObject::trUtf8("Séparateur Composition"),
+                                                                  QObject::trUtf8("Regex Couverture"),
+                                                                  QObject::trUtf8("Séparateur Couverture"),
+                                                                  QObject::trUtf8("Regex de fin d'analyse") };
 
 /*!
- * \brief Vector of XML attributes for the output documents, currently not displayed in the gui
+ * \brief Vector of attributes for the output documents, currently not displayed in the gui
  */
-const QVector<QString> ModelConfiguration::XML_OUTPUT_ATTRS { OUTPUT_ATTR_PATH,
-                                                              OUTPUT_ATTR_WRITER,
-                                                              OUTPUT_ATTR_DELIMITER };
+const QVector<QString> ModelConfiguration::OUTPUT_ATTRS { OUTPUT_ATTR_PATH,
+                                                          OUTPUT_ATTR_WRITER,
+                                                          OUTPUT_ATTR_DELIMITER };
 
 /*!
  * \brief Vector of the supported output file formats
@@ -96,7 +98,6 @@ const QVector<QString> ModelConfiguration::OUTPUT_SUPPORTED_EXT { OUTPUT_ATTR_VA
 
 ModelConfiguration::~ModelConfiguration()
 {
-	if (__configFile.isOpen()) __configFile.close();
 }
 
 ModelConfiguration::ModelConfiguration(QObject *parent)
@@ -107,7 +108,7 @@ ModelConfiguration::ModelConfiguration(QObject *parent)
 
 int ModelConfiguration::columnCount(const QModelIndex & /*parent*/) const
 {
-	return (XML_ATTRS.count());
+	return (REQFILE_ATTRS.count());
 }
 
 int ModelConfiguration::rowCount(const QModelIndex & /*parent*/) const
@@ -122,9 +123,9 @@ QVariant ModelConfiguration::data(const QModelIndex &index, int role) const
 	// The framework is requiring the data to display
 	if (role == Qt::DisplayRole)
 	{
-		QString xml_id = XML_ATTRS[index.column()];
+		QString attr_id = REQFILE_ATTRS[index.column()];
 		QString file_id = __reqFiles.keys().at(index.row());
-		return (__reqFiles[file_id][xml_id]);
+		return (__reqFiles[file_id][attr_id]);
 	}
 
 	return (def_value);
@@ -136,7 +137,7 @@ QVariant ModelConfiguration::headerData(int section, Qt::Orientation orientation
 	{
 		if (orientation == Qt::Horizontal)
 		{
-			return (XML_HEADER_ATTRS[section]);
+			return (REQFILE_HEADER_ATTRS[section]);
 		}
 		else if (orientation == Qt::Vertical)
 		{
@@ -157,6 +158,101 @@ QModelIndex ModelConfiguration::parent(const QModelIndex & /*index*/) const
 	return (QModelIndex());
 }
 
+void ModelConfiguration::__readSectionFiles(const QString& configFilePath,
+                                            ModelConfigurationErrorsRef errModel)
+{
+	QSettings configSettings(configFilePath, QSettings::IniFormat);
+
+	// First read the defined files : store each configuration value for each expected attribute
+	configSettings.beginGroup(SECTION_REQFILES);
+	foreach(QString file_id, configSettings.childGroups())
+	{
+		// Temporarily store the value in a map ; it will be really added only if it is consistent
+		CnfFileAttributesMap_t newItem;
+
+		foreach(QString attr_key, REQFILE_ATTRS)
+		{
+			// The id isn't read as an attribute : it is the group name
+			if (attr_key == REQFILE_ATTR_ID)
+			{
+				newItem[attr_key] = file_id;
+				continue;
+			}
+			else
+			{
+				// all others attributes are read with an empty string as a default value
+				newItem[attr_key] = configSettings.value(QString("%1/%2").arg(file_id).arg(attr_key), QString("")).toString();
+			}
+		}
+
+		/*
+		 * Now all attributes have been read, the REQFILE_ATTR_PATH may need some correction to be an
+		 * absolute path (in the configuration file, relative path are supposed to be relative to the
+		 * configuration file
+		 */
+		QFileInfo fi(newItem[REQFILE_ATTR_PATH]);
+		if (fi.isRelative())
+		{
+			QFileInfo ficnf(configFilePath);
+			newItem[REQFILE_ATTR_PATH] = ficnf.absoluteDir().absolutePath() + "/" + newItem[REQFILE_ATTR_PATH];
+		}
+
+		/*
+		 * And now, the consistency of this item can be checked. The item is added to the list of configured files
+		 * only if it is consistent
+		 */
+		if (!__hasAReqFileConsistecyError(newItem, errModel))
+		{
+			qDebug() << "ModelConfiguration::__readSectionFiles : File description is consistent --> adding the file to the list of configured files";
+			__reqFiles.insert(newItem[REQFILE_ATTR_ID], newItem);
+		}
+	}
+	configSettings.endGroup();
+}
+
+void ModelConfiguration::__readSectionOutputs(const QString& configFilePath,
+                                            ModelConfigurationErrorsRef errModel)
+{
+	QSettings configSettings(configFilePath, QSettings::IniFormat);
+
+	// First read the defined files : store each configuration value for each expected attribute
+	configSettings.beginGroup(SECTION_OUTPUT_FILES);
+	foreach(QString file_id, configSettings.childGroups())
+	{
+		// Temporarily store the value in a map ; it will be really added only if it is consistent
+		CnfFileAttributesMap_t newItem;
+
+		foreach(QString attr_key, OUTPUT_ATTRS)
+		{
+			// all attributes are read with an empty string as a default value
+			newItem[attr_key] = configSettings.value(QString("%1/%2").arg(file_id).arg(attr_key), QString("")).toString();
+		}
+
+		/*
+		 * Now all attributes have been read, the OUTPUT_ATTR_PATH may need some correction to be an
+		 * absolute path (in the configuration file, relative path are supposed to be relative to the
+		 * configuration file
+		 */
+		QFileInfo fi(newItem[OUTPUT_ATTR_PATH]);
+		if (fi.isRelative())
+		{
+			QFileInfo ficnf(configFilePath);
+			newItem[OUTPUT_ATTR_PATH] = ficnf.absoluteDir().absolutePath() + "/" + newItem[OUTPUT_ATTR_PATH];
+		}
+
+		/*
+		 * And now, the consistency of this item can be checked. The item is added to the list of configured files
+		 * only if it is consistent
+		 */
+		if (!__hasAnOutputFileConsistecyError(newItem, errModel))
+		{
+			qDebug() << "ModelConfiguration::__readSectionOutputs : Output File is consistent --> adding the file to the list of output files";
+			__outputFiles.append(newItem);
+		}
+	}
+	configSettings.endGroup();
+}
+
 void ModelConfiguration::setFile(const char* p_filepath, ModelConfigurationErrorsRef errModel)
 {
 	// Clear possible previous data & errors
@@ -164,117 +260,46 @@ void ModelConfiguration::setFile(const char* p_filepath, ModelConfigurationError
 	__outputFiles.clear();
 	errModel.clear();
 
-	// then load the new file...
-	qDebug() << "ModelConfiguration::setFile - Ouverture du fichier " << p_filepath;
-	if (__configFile.isOpen()) __configFile.close();
+	/*
+	 * First check the existence and the possibility to open the file and only then, open it as a QSetting.
+	 * It is mandatory because in case p_filepath is coming from the command line, it is
+	 * possible for the user to have mistyped it and QSettings will always succeed because
+	 * if the file given in parameter does not exist then its constructor creates it.
+	 */
+	QString configFilePath(p_filepath) ;
 
-	__configFile.setFileName(p_filepath);
-	if (!__configFile.open(QIODevice::ReadOnly))
+	QFile tstf(configFilePath) ;
+	if (!tstf.open(QIODevice::ReadOnly))
 	{
 		ModelConfigurationErrors::error_t e;
 		e.severity = ModelConfigurationErrors::CRITICAL;
 		e.category = ModelConfigurationErrors::FILESYSTEM;
-		e.description = QObject::trUtf8("Impossible d'ouvrir le fichier %1").arg(p_filepath);
+		e.description = QObject::trUtf8("Impossible d'ouvrir le fichier %1").arg(configFilePath);
 
 		errModel.addError(e);
-
-		return;
 	}
-
-	// ... and parse it
-	QXmlStreamReader xstr(&__configFile);
-	while (!xstr.atEnd())
+	else
 	{
-		if (xstr.isStartElement())
+		// Close the file to let the QSettings access it
+		tstf.close() ;
+
+		// Check the format of the file ; parse it only if it is correct
+		QSettings configSettings(configFilePath, QSettings::IniFormat);
+		if (configSettings.status() == QSettings::FormatError)
 		{
-			if (xstr.name().toString() == XML_NODE_FILE)
-			{
-				// Parsing a configured file node
-				qDebug() << "--------------------------------------------------";
-				qDebug() << "ModelConfiguration::setFile : New configured file ";
+			ModelConfigurationErrors::error_t e;
+			e.severity = ModelConfigurationErrors::WARNING;
+			e.category = ModelConfigurationErrors::PARSING;
+			e.description = QObject::trUtf8("Erreurs de format de fichier ini (la configuration peut être fausse)");
 
-				// Append a file to the list of configured files
-				QMap<QString,QString> newItem;
-
-				foreach(QString s, XML_ATTRS)
-				{
-					// If the attribute does not exist, the «value» method returns an empty string
-					// Concerning the REQFILE_ATTR_PATH attribute, the basedir of the configuration file
-					// must be added if the path is a relative one.
-
-					newItem[s] = xstr.attributes().value(s).toString();// the correct value by default
-					if (s == REQFILE_ATTR_PATH)
-					{
-						QFileInfo fi(xstr.attributes().value(s).toString());
-
-						if (fi.isRelative())
-						{
-							// just override the previously stored value in this particular case
-							QFileInfo ficnf(__configFile);
-							newItem[s] = ficnf.absoluteDir().absolutePath() + "/" + xstr.attributes().value(s).toString();
-						}
-					}
-
-					qDebug() << "ModelConfiguration::setFile : reading config[" << s << "] =" << newItem[s];
-				}
-
-				if (!__hasAReqFileConsistecyError(newItem, errModel))
-				{
-					qDebug() << "ModelConfiguration::setFile : File description is consistent --> adding the file to the list of configured files";
-					__reqFiles.insert(newItem[REQFILE_ATTR_ID], newItem);
-				}
-			}
-			else if (xstr.name().toString() == XML_NODE_OUTPUT)
-			{
-				// Parsing a configured output node
-				qDebug() << "---------------------------------------------------";
-				qDebug() << "ModelConfiguration::setFile : New configured output ";
-
-				// Append a file to the list of configured outputs
-				QMap<QString,QString> newItem;
-
-				foreach(QString s, XML_OUTPUT_ATTRS)
-				{
-					// If the attribute does not exist, the «value» method returns an empty string
-					// Concerning the OUTPUT_ATTR_PATH attribute, the basedir of the configuration file
-					// must be added if the path is a relative one.
-
-					newItem[s] = xstr.attributes().value(s).toString();// the correct value by default
-					if (s == OUTPUT_ATTR_PATH)
-					{
-						QFileInfo fi(xstr.attributes().value(s).toString());
-
-						if (fi.isRelative())
-						{
-							// just override the previously stored value in this particular case
-							QFileInfo ficnf(__configFile);
-							newItem[s] = ficnf.absoluteDir().absolutePath() + "/" + xstr.attributes().value(s).toString();
-						}
-					}
-
-					qDebug() << "ModelConfiguration::setFile : reading output config[" << s << "] =" << newItem[s];
-				}
-
-				if (!__hasAnOutputFileConsistecyError(newItem, errModel))
-				{
-					qDebug() << "ModelConfiguration::setFile : Output File is consistent --> adding the file to the list of output files";
-					__outputFiles.append(newItem);
-				}
-			}
+			errModel.addError(e);
 		}
-
-		xstr.readNext();
-	}
-
-	// Pure XML parsing error has been detected ?
-	if (xstr.hasError())
-	{
-		ModelConfigurationErrors::error_t e;
-		e.severity = ModelConfigurationErrors::WARNING;
-		e.category = ModelConfigurationErrors::PARSING;
-		e.description = QObject::trUtf8("Erreurs XML (la configuration peut être fausse) : %1").arg(xstr.errorString());
-
-		errModel.addError(e);
+		else
+		{
+			// From now it is possible to read the configuration safely
+			__readSectionFiles(configFilePath, errModel);
+			__readSectionOutputs(configFilePath, errModel);
+		}
 	}
 
 	// Request graphical update of the data
@@ -287,7 +312,7 @@ void ModelConfiguration::setFile(const char* p_filepath, ModelConfigurationError
 	errModel.refresh();
 }
 
-bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAttributesMap_t& configured_file,
+bool ModelConfiguration::__hasAReqFileConsistecyError(const CnfFileAttributesMap_t& configured_file,
                                                       ModelConfigurationErrorsRef errModel)
 {
 	bool retVal = true;  // errors by default
@@ -392,6 +417,16 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_REQREGEX);
 			errors.append(e);
 		}
+		else
+		{
+			if (!regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQID))
+			{
+				e.severity = ModelConfigurationErrors::ERROR;
+				e.category = ModelConfigurationErrors::CONTENT;
+				e.description = QObject::trUtf8("Fichier %1, la regex d'identification d'exigence ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQID).arg(REQFILE_ATTR_REQREGEX);
+				errors.append(e);
+			}
+		}
 	}
 
 	// Checking the cmp_regex attributes
@@ -417,12 +452,11 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 		}
 		else
 		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors cmp_regex nb of groups :" << regex.captureCount() ;
-			if (regex.captureCount() != 1)
+			if (!regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQLST))
 			{
 				e.severity = ModelConfigurationErrors::ERROR;
 				e.category = ModelConfigurationErrors::CONTENT;
-				e.description = QObject::trUtf8("Fichier %1, il doit y avoir un et un seul groupe défini dans la regex CMP : %2").arg(file_id).arg(configured_file[REQFILE_ATTR_CMPREGEX]);
+				e.description = QObject::trUtf8("Fichier %1, la regex d'identification de composition ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQLST).arg(REQFILE_ATTR_CMPREGEX);
 				errors.append(e);
 			}
 		}
@@ -461,12 +495,11 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 		}
 		else
 		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors cov_regex nb of groups :" << regex.captureCount() ;
-			if (regex.captureCount() != 1)
+			if (!regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQLST))
 			{
 				e.severity = ModelConfigurationErrors::ERROR;
 				e.category = ModelConfigurationErrors::CONTENT;
-				e.description = QObject::trUtf8("Fichier %1, il doit y avoir un et un seul groupe défini dans la regex COV : %2").arg(file_id).arg(configured_file[REQFILE_ATTR_COVREGEX]);
+				e.description = QObject::trUtf8("Fichier %1, la regex d'identification de couverture ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQLST).arg(REQFILE_ATTR_COVREGEX);
 				errors.append(e);
 			}
 		}
@@ -510,7 +543,7 @@ bool ModelConfiguration::__hasAReqFileConsistecyError(const XmlConfiguredFileAtt
 	return (retVal);
 }
 
-bool ModelConfiguration::__hasAnOutputFileConsistecyError(const XmlConfiguredFileAttributesMap_t& configured_file,
+bool ModelConfiguration::__hasAnOutputFileConsistecyError(const CnfFileAttributesMap_t& configured_file,
                                                           ModelConfigurationErrorsRef errModel)
 {
 	bool retVal = true;  // errors by default
