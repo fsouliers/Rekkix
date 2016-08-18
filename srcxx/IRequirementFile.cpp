@@ -71,7 +71,7 @@ void IRequirementFile::addDownstreamDocument(const QString& p_fileId, IRequireme
 	}
 }
 
-bool IRequirementFile::_hasRequirementDefinition(const QString& p_text,
+bool IRequirementFile::_hasStoredAnyRequirementDefinition(const QString& p_text,
                                                  QString& p_reqfound,
                                                  bool& p_reqAcceptable)
 {
@@ -98,7 +98,7 @@ bool IRequirementFile::_hasRequirementDefinition(const QString& p_text,
 	}
 }
 
-bool IRequirementFile::_hasExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId)
+bool IRequirementFile::_hasStoredAnyExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId)
 {
 	QRegularExpressionMatch cmp_m = _regexCmp.match(p_text);
 	if (cmp_m.hasMatch())
@@ -121,7 +121,7 @@ bool IRequirementFile::_hasExpectedCompositeRequirements(const QString& p_text, 
 	}
 }
 
-bool IRequirementFile::_hasExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId)
+bool IRequirementFile::_hasStoredAnyExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId)
 {
 	QRegularExpressionMatch cov_m = _regexCov.match(p_text);
 	if (cov_m.hasMatch())

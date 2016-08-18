@@ -131,7 +131,7 @@ void RequirementFile_docx::parseFile()
 		}
 
 		// If the «requirement definition» regex matches, then nothing more to do with this line
-		if (_hasRequirementDefinition(data, current_req, isCurrentReqAcceptable))
+		if (_hasStoredAnyRequirementDefinition(data, current_req, isCurrentReqAcceptable))
 		{
 			xstr.readNext();
 			continue ;
@@ -140,7 +140,7 @@ void RequirementFile_docx::parseFile()
 		// If the the «composed of several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCmpRegex())
 		{
-			if (_hasExpectedCompositeRequirements(data, current_req))
+			if (_hasStoredAnyExpectedCompositeRequirements(data, current_req))
 			{
 				xstr.readNext();
 				continue ;
@@ -150,7 +150,7 @@ void RequirementFile_docx::parseFile()
 		// If the the «covering several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCovRegex())
 		{
-			if (_hasExpectedUpstreamRequirements(data, current_req))
+			if (_hasStoredAnyExpectedUpstreamRequirements(data, current_req))
 			{
 				xstr.readNext();
 				continue ;

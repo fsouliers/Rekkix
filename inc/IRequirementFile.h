@@ -314,7 +314,7 @@ protected:
 	 * - true if the regex matched
 	 * - false else
 	 */
-	bool _hasRequirementDefinition(const QString& p_text, QString& p_reqfound, bool& p_reqAcceptable);
+	bool _hasStoredAnyRequirementDefinition(const QString& p_text, QString& p_reqfound, bool& p_reqAcceptable);
 
 	/*!
 	 * \brief Checks if the text matches the cmp_regex
@@ -329,7 +329,7 @@ protected:
 	 * - true if the regex matched
 	 * - false else
 	 */
-	bool _hasExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId);
+	bool _hasStoredAnyExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId);
 
 	/*!
 	 * \brief Checks if the text matches the cov_regex
@@ -343,7 +343,7 @@ protected:
 	 * - true if the regex matched
 	 * - false else
 	 */
-	bool _hasExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId) ;
+	bool _hasStoredAnyExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId) ;
 
 	/*!
 	 * \brief checks whether the "Stop After" regex has been reached

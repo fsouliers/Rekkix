@@ -48,18 +48,18 @@ void RequirementFile_txt::parseFile()
 		QString current_line = f.readLine() ;
 
 		// If the «requirement definition» regex matches, then nothing more to do with this line
-		if (_hasRequirementDefinition(current_line, current_req, isCurrentReqAcceptable)) continue ;
+		if (_hasStoredAnyRequirementDefinition(current_line, current_req, isCurrentReqAcceptable)) continue ;
 
 		// If the the «composed of several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCmpRegex())
 		{
-			if (_hasExpectedCompositeRequirements(current_line, current_req)) continue ;
+			if (_hasStoredAnyExpectedCompositeRequirements(current_line, current_req)) continue ;
 		}
 
 		// If the the «covering several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCovRegex())
 		{
-			if (_hasExpectedUpstreamRequirements(current_line, current_req)) continue ;
+			if (_hasStoredAnyExpectedUpstreamRequirements(current_line, current_req)) continue ;
 		}
 
 		// if the stopAfter regex is reached, then stop parsing the file

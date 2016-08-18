@@ -81,6 +81,7 @@ HEADERS += ./inc/AnalysisError.h \
            ./inc/Rekkix.h \
            ./inc/Requirement.h \
            ./inc/RequirementFile_docx.h \ 
+           ./inc/RequirementFile_odt.h \ 
            ./inc/RequirementFile_txt.h
 
 # sources
@@ -101,6 +102,7 @@ SOURCES += ./srcxx/AnalysisError.cpp \
            ./srcxx/Rekkix.cpp \
            ./srcxx/Requirement.cpp \
            ./srcxx/RequirementFile_docx.cpp \
+           ./srcxx/RequirementFile_odt.cpp \
            ./srcxx/RequirementFile_txt.cpp 
            
 
