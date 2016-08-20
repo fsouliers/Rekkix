@@ -34,16 +34,11 @@ Q_OBJECT
 public:
 
 	/*!
-	 * \brief Constructor #1, sets up the GUI
+	 * \brief Constructor
 	 * \param[in]  parent   Not used
+	 * \param[in]  setupUI  should the constructor initialize some Graphical User Interface ?
 	 */
-	Rekkix(QApplication * parent);
-
-	/*!
-	 * \brief Constructor #2, sets up the GUI and read the configuration file provided
-	 * \param[in]  parent   Not used
-	 */
-	Rekkix(QApplication * parent, const char * p_filename);
+	Rekkix(QApplication * parent, bool setupUI = true);
 
 	/*!
 	 * \brief Destructor of the model, only ensures to close the configuration file if needed
@@ -59,8 +54,11 @@ public slots :
 
 	/*!
 	 * \brief start the analysis with the loaded configuration file
+	 * \param[in] isBatchMode  If set to true, it means the slot hasn't been called from the gui but from
+	 *                         the batch mode running code. In such a case, do not interacts with the gui
+	 *                         (as it doesn't exist)
 	 */
-	void slt_startAnalysis();
+	void slt_startAnalysis(bool isBatchMode = false);
 
 	/*!
 	 * \brief this slot is called when a file is selected in the files coverage summary view
@@ -70,8 +68,26 @@ public slots :
 
 	/*!
 	 * \brief generate the report as specified in the loaded configuration file
+	 * \param[in] isBatchMode  If set to true, it means the slot hasn't been called from the gui but from
+	 *                         the batch mode running code. In such a case, do not interacts with the gui
+	 *                         (as it doesn't exist)
 	 */
-	void slt_generateReports();
+	void slt_generateReports(bool isBatchMode = false);
+
+	/*!
+	 * \brief load a configuration file (from gui or from command line) and initialize gui accordingly
+	 * \param[in] p_filename  file name & path of the file to be loaded
+	 */
+	void loadFileAndInitGui(const char* p_filename);
+
+	/*!
+	 * \brief load a configuration file (from command line), compute analysis and generate reports
+	 * \param[in] p_filename  file name & path of the file to be loaded
+	 * \return
+	 * - EXIT_SUCCESS in case everything goes properly
+	 * - EXIT_FAILURE else and errors have been displayed on stderr
+	 */
+	int loadFileAndRunBatch(const char* p_filename);
 
 private:
 
@@ -84,17 +100,6 @@ private:
 	ModelReqsCoveredDownstream __downstreamCoverageModel; //!< model for downstream requirements
 	ModelCompositeReqs __compositeRequirementsModel; //!< model for composite requirements
 	ModelReqs __requirementsModel; //!< model for requirements of the selected file
-
-	/*!
-	 * \brief called by the differents constructors to initialize the common part needed
-	 */
-	void __common_init();  // common initialisations
-
-	/*!
-	 * \brief load a configuration file (from gui or from command line) and initialize gui accordingly
-	 * \param[in] p_filename  file name & path of the file to be loaded
-	 */
-	void __loadFileAndInitGui(const char* p_filename);
 
 	/*!
 	 * \brief When building a report, builds the string used for the summary of the report (list of files, errors, ...)

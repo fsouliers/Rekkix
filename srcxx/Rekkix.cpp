@@ -20,58 +20,39 @@
 #include "FactoryReportBaseString.h"
 
 // Constructor #1
-Rekkix::Rekkix(QApplication * parent)
+Rekkix::Rekkix(QApplication * parent, bool setupUI)
 		: QMainWindow(NULL, Qt::Window)
 {
-	// Build GUI
-	Ui::RekkixMW::setupUi(this);
 
 	// Set the application running the window
 	__app = parent;
-	__common_init();
+
+	if (setupUI)
+	{
+		// Build GUI
+		Ui::RekkixMW::setupUi(this);
+
+		// tab "configuration"
+		this->tv_configuredFiles->setModel(&__cnfModel);
+		this->tv_configurationErrors->setModel(&__cnfErrorsModel);
+
+		// tab "results"
+		this->tv_filesCoverageSummary->setModel(&ModelSngReqMatrix::instance());
+		this->tv_downstreamDocs->setModel(&__currentlyDisplayedDownstreamDocsModel);
+		this->tv_upstreamDocs->setModel(&__currentlyDisplayedUpstreamDocsModel);
+		this->tv_upstreamCoverage->setModel(&__upstreamCoverageModel);
+		this->tv_downstreamCoverage->setModel(&__downstreamCoverageModel);
+		this->tv_compositeReqs->setModel(&__compositeRequirementsModel);
+		this->tv_definedReqs->setModel(&__requirementsModel);
+		this->tv_errors->setModel(&ModelSngAnalysisErrors::instance());
+	}
 }
-
-// Constructor #2
-Rekkix::Rekkix(QApplication * parent, const char* p_filename)
-		: QMainWindow(NULL, Qt::Window)
-{
-	// Build GUI
-	Ui::RekkixMW::setupUi(this);
-
-	// Set the application running the window
-	__app = parent;
-	__common_init();
-
-	// Load Given file
-	__loadFileAndInitGui(p_filename);
-}
-
 
 Rekkix::~Rekkix()
 {
 }
 
-
-void Rekkix::__common_init()
-{
-	// tab "configuration"
-	this->tv_configuredFiles->setModel(&__cnfModel);
-	this->tv_configurationErrors->setModel(&__cnfErrorsModel);
-	this->progbar_analysis->setValue(0);
-	this->pb_startAnalysis->setEnabled(false);
-
-	// tab "results"
-	this->tv_filesCoverageSummary->setModel(&ModelSngReqMatrix::instance());
-	this->tv_downstreamDocs->setModel(&__currentlyDisplayedDownstreamDocsModel);
-	this->tv_upstreamDocs->setModel(&__currentlyDisplayedUpstreamDocsModel);
-	this->tv_upstreamCoverage->setModel(&__upstreamCoverageModel);
-	this->tv_downstreamCoverage->setModel(&__downstreamCoverageModel);
-	this->tv_compositeReqs->setModel(&__compositeRequirementsModel);
-	this->tv_definedReqs->setModel(&__requirementsModel);
-	this->tv_errors->setModel(&ModelSngAnalysisErrors::instance());
-}
-
-void Rekkix::__loadFileAndInitGui(const char* p_filename)
+void Rekkix::loadFileAndInitGui(const char* p_filename)
 {
 	__cnfModel.setFile(p_filename, __cnfErrorsModel);
 	this->progbar_analysis->setValue(0);
@@ -88,6 +69,49 @@ void Rekkix::__loadFileAndInitGui(const char* p_filename)
 	}
 }
 
+int Rekkix::loadFileAndRunBatch(const char* p_filename)
+{
+	fprintf(stdout, "\n%s\n", QObject::trUtf8("Chargement du fichier de configuration : %1").arg(p_filename).toStdString().c_str()) ;
+	__cnfModel.setFile(p_filename, __cnfErrorsModel);
+
+	// Check if the configuration is OK
+	if (__cnfErrorsModel.hasSignificantError())
+	{
+		fprintf(stdout, "%s", QObject::trUtf8("Erreurs graves de configuration identifées, impossible de continuer :").toStdString().c_str()) ;
+
+		QString err = "" ;
+		__cnfErrorsModel.appendErrorString(err) ;
+		__cnfErrorsModel.appendWarningString(err) ;
+		fprintf(stdout, "%s\n", err.toStdString().c_str()) ;
+
+		return(EXIT_FAILURE) ;
+	}
+	else if (__cnfErrorsModel.hasWarning())
+	{
+		fprintf(stdout, "%s", QObject::trUtf8("Alertes de configuration (l'analyse peut continuer) :").toStdString().c_str()) ;
+
+		QString err = "" ;
+		__cnfErrorsModel.appendWarningString(err) ;
+		fprintf(stdout, "%s\n", err.toStdString().c_str()) ;
+	}
+	else
+	{
+		fprintf(stdout, "%s\n", QObject::trUtf8("Configuration OK").toStdString().c_str()) ;
+	}
+
+	// Run analysis and generate report, with no gui
+	fprintf(stdout, "%s\n", QObject::trUtf8("Analyse des documents mentionnés en configuration :").toStdString().c_str()) ;
+	slt_startAnalysis(true) ; // running batch mode
+
+	fprintf(stdout, "%s\n", QObject::trUtf8("Génération des rapports mentionnés en configuration :").toStdString().c_str()) ;
+	slt_generateReports(true) ; // running batch mode
+
+	// Happy end
+	return(EXIT_SUCCESS) ;
+}
+
+
+
 void Rekkix::slt_loadConfigurationFile()
 {
 	QString filename;
@@ -96,11 +120,11 @@ void Rekkix::slt_loadConfigurationFile()
 
 	if (filename.size() > 0)
 	{
-		__loadFileAndInitGui(filename.toStdString().c_str());
+		loadFileAndInitGui(filename.toStdString().c_str());
 	}
 }
 
-void Rekkix::slt_startAnalysis()
+void Rekkix::slt_startAnalysis(bool isBatchMode)
 {
 	ModelConfiguration::CnfFileAttributesMapsByFileId_t files = __cnfModel.getConfiguredRequirementFiles();
 	int nbFiles = files.count();
@@ -118,17 +142,32 @@ void Rekkix::slt_startAnalysis()
 
 		// Calculate GUI update so the user can see the software is alive
 		progbar_value = 84 * i / nbFiles + 1;  // dumb calculation just to ensure the value will alway be in [1;85] ... why 85 ? because 42 is not big enough
-		this->progbar_analysis->setValue(progbar_value);
+		if (isBatchMode)
+		{
+			fprintf(stdout, "%s", QObject::trUtf8("\rAnalyse : %01 %").arg(progbar_value).toStdString().c_str()) ;
+		}
+		else
+		{
+			this->progbar_analysis->setValue(progbar_value);
+		}
 	}
 
 	// 2nd Step of analysis : computing coverage (only once all requirements are known)
 	ModelSngReqMatrix::instance().computeCoverage();
-	this->progbar_analysis->setValue(100);  // 100% reached ... arbitrarily ...
+	progbar_value = 100 ; // 100% reached ... arbitrarily ...
+	if (isBatchMode)
+	{
+		fprintf(stdout, "%s\n", QObject::trUtf8("\rAnalyse : %01 %\n").arg(progbar_value).toStdString().c_str()) ;
+	}
+	else
+	{
+		this->progbar_analysis->setValue(progbar_value);
 
-	// 3rd Step : change current tab to display results
-	this->mw_tabs->setCurrentWidget(this->tab_results);
-	this->tv_filesCoverageSummary->resizeColumnsToContents();
-	this->tv_errors->resizeColumnsToContents();
+		// 3rd Step : change current tab to display results
+		this->mw_tabs->setCurrentWidget(this->tab_results);
+		this->tv_filesCoverageSummary->resizeColumnsToContents();
+		this->tv_errors->resizeColumnsToContents();
+	}
 }
 
 void Rekkix::slt_fileCoverageSummary_selected(QModelIndex /*p_index*/)
@@ -180,54 +219,63 @@ void Rekkix::slt_fileCoverageSummary_selected(QModelIndex /*p_index*/)
 }
 }
 
-void Rekkix::slt_generateReports()
+void Rekkix::slt_generateReports(bool isBatchMode)
 {
 	QDateTime reportTimestamp = QDateTime::currentDateTime();
 
-	foreach(ModelConfiguration::CnfFileAttributesMap_t outFileDescription, __cnfModel.getOutputFiles()){
-	// Step 0 : prepare base file templates
-	QString writer = outFileDescription[ModelConfiguration::OUTPUT_ATTR_WRITER];
-	QString delimiter = outFileDescription[ModelConfiguration::OUTPUT_ATTR_DELIMITER];
-	FactoryReportBaseString fact;
-	QString s_base(fact.getBaseString("base", writer, delimiter));
-
-	// In case of html, Step 1 : include CSS and replace the template values
-	if (writer == ModelConfiguration::OUTPUT_ATTR_VALUE_HTML)
+	foreach(ModelConfiguration::CnfFileAttributesMap_t outFileDescription, __cnfModel.getOutputFiles())
 	{
-		s_base.replace("REKKIX_CSS_SECTION", fact.getCSString());
+		// Step 0 : prepare base file templates
+		QString writer = outFileDescription[ModelConfiguration::OUTPUT_ATTR_WRITER];
+		QString delimiter = outFileDescription[ModelConfiguration::OUTPUT_ATTR_DELIMITER];
+		FactoryReportBaseString fact;
+		QString s_base(fact.getBaseString("base", writer, delimiter));
+
+		// In case of html, Step 1 : include CSS and replace the template values
+		if (writer == ModelConfiguration::OUTPUT_ATTR_VALUE_HTML)
+		{
+			s_base.replace("REKKIX_CSS_SECTION", fact.getCSString());
+		}
+
+		// Step 2 : build the report header and summary table
+		s_base.replace("REKKIX_REPORT_TITLE", QObject::trUtf8("Rapport de traçabilité"));
+		s_base.replace("REKKIX_REPORT_SUBTITLE", QObject::trUtf8("Généré le %1").arg(reportTimestamp.toString(QObject::trUtf8("dd/MM/yyyy hh:mm:ss"))));
+		s_base.replace("REKKIX_SUMMARY_TITLE", QObject::trUtf8("1/ Matrice de traçabilité"));
+		s_base.replace("REKKIX_SUMMARY_TABLE", __getReportSummaryTable(writer, delimiter));
+
+		// Step 3 : build the error section
+		s_base.replace("REKKIX_ERRORS_TITLE", QObject::trUtf8("2/ Erreurs trouvées dans l'analyse des fichiers"));
+		s_base.replace("REKKIX_ERRORS_CONTENT", __getReportErrorsTable(writer, delimiter));
+
+		// Step 4 : build the report with data and replace the tag
+		s_base.replace("REKKIX_DETAILS_TITLE", QObject::trUtf8("3/ Détails de traçabilité des fichiers"));
+		s_base.replace("REKKIX_DETAILS_CONTENT", ModelSngReqMatrix::instance().getReportFileDetails(writer, delimiter));
+
+		// Step 5 : store file on disk
+		QString outFilePath(outFileDescription[ModelConfiguration::OUTPUT_ATTR_PATH]);
+		outFilePath.replace("REKKIXTIMESTAMP", reportTimestamp.toString("yyyyMMddhhmmss"));
+
+		qDebug() << "Rekkix::slt_generateReports : generating " << outFilePath;
+		QFile fout(outFilePath);
+		fout.open(QIODevice::WriteOnly | QIODevice::Text);
+		QTextStream out_stream(&fout);
+		out_stream << s_base;
+		fout.close();
 	}
 
-	// Step 2 : build the report header and summary table
-	s_base.replace("REKKIX_REPORT_TITLE", QObject::trUtf8("Rapport de traçabilité"));
-	s_base.replace("REKKIX_REPORT_SUBTITLE", QObject::trUtf8("Généré le %1").arg(reportTimestamp.toString(QObject::trUtf8("dd/MM/yyyy hh:mm:ss"))));
-	s_base.replace("REKKIX_SUMMARY_TITLE", QObject::trUtf8("1/ Matrice de traçabilité"));
-	s_base.replace("REKKIX_SUMMARY_TABLE", __getReportSummaryTable(writer, delimiter));
-
-	// Step 3 : build the error section
-	s_base.replace("REKKIX_ERRORS_TITLE", QObject::trUtf8("2/ Erreurs trouvées dans l'analyse des fichiers"));
-	s_base.replace("REKKIX_ERRORS_CONTENT", __getReportErrorsTable(writer, delimiter));
-
-	// Step 4 : build the report with data and replace the tag
-	s_base.replace("REKKIX_DETAILS_TITLE", QObject::trUtf8("3/ Détails de traçabilité des fichiers"));
-	s_base.replace("REKKIX_DETAILS_CONTENT", ModelSngReqMatrix::instance().getReportFileDetails(writer, delimiter));
-
-	// Step 5 : store file on disk
-	QString outFilePath(outFileDescription[ModelConfiguration::OUTPUT_ATTR_PATH]);
-	outFilePath.replace("REKKIXTIMESTAMP", reportTimestamp.toString("yyyyMMddhhmmss"));
-
-	qDebug() << "Rekkix::slt_generateReports : generating " << outFilePath;
-	QFile fout(outFilePath);
-	fout.open(QIODevice::WriteOnly | QIODevice::Text);
-	QTextStream out_stream(&fout);
-	out_stream << s_base;
-	fout.close();
+	if (isBatchMode)
+	{
+		fprintf(stdout, "%s\n", QObject::trUtf8("Fin de génération des rapports").toStdString().c_str()) ;
+	}
+	else
+	{
+		QMessageBox::information(NULL,
+		                         QObject::trUtf8("Génération du rapport terminée"),
+		                         QObject::trUtf8("Fin de génération des rapports"),
+		                         QMessageBox::Ok);
+	}
 }
 
-	QMessageBox::information(NULL,
-	                         QObject::trUtf8("Génération du rapport terminée"),
-	                         QObject::trUtf8("Fin de génération des rapports"),
-	                         QMessageBox::Ok);
-}
 
 const QString Rekkix::__getReportSummaryTable(const QString& p_writer, const QString& p_delimiter) const
 {

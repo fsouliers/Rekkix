@@ -34,6 +34,7 @@ INCLUDEPATH += ./inc ./ui_inc
 
 # Preprocessor defines (-D directives)
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 # Third party library : libzip
 win32:INCLUDEPATH += ./win32_libzip/inc
@@ -54,7 +55,9 @@ RCC_DIR = ./rcc
 UI_DIR = ./ui_inc
 
 # output folder 
-DESTDIR = ./bin
+win32:DESTDIR = ./bin/windows
+unix:DESTDIR = ./bin/linux
+macx:DESTDIR = ./bin/macx
 
 
 

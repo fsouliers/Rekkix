@@ -61,7 +61,7 @@
            </font>
           </property>
           <property name="value">
-           <number>50</number>
+           <number>0</number>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -94,6 +94,9 @@
           </item>
           <item>
            <widget class="QPushButton" name="pb_startAnalysis">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="minimumSize">
              <size>
               <width>160</width>
@@ -158,16 +161,7 @@
             <number>0</number>
            </property>
            <layout class="QGridLayout" name="gridLayout_12">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
+            <property name="margin">
              <number>0</number>
             </property>
             <item row="0" column="0" rowspan="2">
@@ -189,9 +183,6 @@
                    <width>200</width>
                    <height>0</height>
                   </size>
-                 </property>
-                 <property name="sizeAdjustPolicy">
-                  <enum>QAbstractScrollArea::AdjustToContents</enum>
                  </property>
                  <property name="alternatingRowColors">
                   <bool>true</bool>
@@ -242,9 +233,6 @@
                    <height>16777215</height>
                   </size>
                  </property>
-                 <property name="sizeAdjustPolicy">
-                  <enum>QAbstractScrollArea::AdjustToContents</enum>
-                 </property>
                  <property name="alternatingRowColors">
                   <bool>true</bool>
                  </property>
@@ -291,9 +279,6 @@
                    <height>16777215</height>
                   </size>
                  </property>
-                 <property name="sizeAdjustPolicy">
-                  <enum>QAbstractScrollArea::AdjustToContents</enum>
-                 </property>
                  <property name="alternatingRowColors">
                   <bool>true</bool>
                  </property>
@@ -327,9 +312,6 @@
             <layout class="QGridLayout" name="gridLayout_7">
              <item row="0" column="0">
               <widget class="QTableView" name="tv_errors">
-               <property name="sizeAdjustPolicy">
-                <enum>QAbstractScrollArea::AdjustToContents</enum>
-               </property>
                <property name="alternatingRowColors">
                 <bool>true</bool>
                </property>
@@ -357,9 +339,6 @@
              <layout class="QGridLayout" name="gridLayout_8">
               <item row="0" column="0">
                <widget class="QTableView" name="tv_definedReqs">
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::AdjustToContents</enum>
-                </property>
                 <property name="selectionBehavior">
                  <enum>QAbstractItemView::SelectRows</enum>
                 </property>
@@ -382,9 +361,6 @@
                   <width>0</width>
                   <height>300</height>
                  </size>
-                </property>
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::AdjustToContents</enum>
                 </property>
                 <property name="alternatingRowColors">
                  <bool>true</bool>
@@ -409,9 +385,6 @@
              <layout class="QGridLayout" name="gridLayout_5">
               <item row="0" column="0">
                <widget class="QTableView" name="tv_compositeReqs">
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::AdjustToContents</enum>
-                </property>
                 <property name="selectionBehavior">
                  <enum>QAbstractItemView::SelectRows</enum>
                 </property>
@@ -437,9 +410,6 @@
                   <width>0</width>
                   <height>0</height>
                  </size>
-                </property>
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::AdjustToContents</enum>
                 </property>
                 <property name="alternatingRowColors">
                  <bool>true</bool>
@@ -525,7 +495,7 @@
      <x>0</x>
      <y>0</y>
      <width>1142</width>
-     <height>21</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Fichier">

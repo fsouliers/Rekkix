@@ -111,11 +111,48 @@ void ModelConfigurationErrors::refresh()
 
 bool ModelConfigurationErrors::hasSignificantError()
 {
-	foreach(error_t e, __errors){
-	if (e.severity == ERROR || e.severity == CRITICAL) return(true);
+	foreach(error_t e, __errors)
+	{
+		if (e.severity == ERROR || e.severity == CRITICAL) return(true);
+	}
+
+	return(false);
 }
 
-return(false);
+bool ModelConfigurationErrors::hasWarning()
+{
+	foreach(error_t e, __errors)
+	{
+		if (e.severity == WARNING) return(true);
+	}
+
+	return(false);
+}
+
+void ModelConfigurationErrors::appendErrorString(QString& str)
+{
+	foreach(error_t e, __errors)
+	{
+		if (e.severity == ERROR || e.severity == CRITICAL)
+		{
+			str += "\n" + QObject::trUtf8("Sévérité<%1> Catégorie<%2> Description<%3>").arg(__severityToString(e.severity))
+			                                                                           .arg(__categoryToString(e.category))
+			                                                                           .arg(e.description) ;
+		}
+	}
+}
+
+void ModelConfigurationErrors::appendWarningString(QString& str)
+{
+	foreach(error_t e, __errors)
+	{
+		if (e.severity == WARNING)
+		{
+			str += "\n" + QObject::trUtf8("Sévérité<%1> Catégorie<%2> Description<%3>").arg(__severityToString(e.severity))
+			                                                                           .arg(__categoryToString(e.category))
+			                                                                           .arg(e.description).toLatin1() ;
+		}
+	}
 }
 
 QString ModelConfigurationErrors::__severityToString(const severity_t& s) const

@@ -171,6 +171,30 @@ public:
 	 */
 	bool hasSignificantError();
 
+	/*!
+	 * \brief Getter used to know if there is at least one warning
+	 *
+	 * This method is used to display the list of warnings in batch mode
+	 * \return
+	 * - true if at least one error with severity WARNING.
+	 * - else false
+	 */
+	bool hasWarning();
+
+	/*!
+	 * \brief used in batch mode to display configuration errors in the console (shell)
+	 * \param[out]  str  the string that must be completed with the errors (separated by new lines).
+	 *                   The initial string is not reseted by this method (only new characters added)
+	 */
+	void appendErrorString(QString& str) ;
+
+	/*!
+	 * \brief used in batch mode to display configuration warnings in the console (shell)
+	 * \param[out]  str  the string that must be completed with the warnings (separated by new lines)
+	 *                   The initial string is not reseted by this method (only new characters added)
+	 */
+	void appendWarningString(QString& str) ;
+
 private:
 	/*!
 	 * Vector of errors found in the configuration file
