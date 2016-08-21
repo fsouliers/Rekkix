@@ -19,11 +19,12 @@ class IRequirementFile;
  */
 class Requirement
 {
+
 public:
 	/*!
-	 * \brief invalid value for coverage, used for initialization.
+	 * \brief invalid value for coverage, used for initialization (set to minimum double value
 	 */
-	static const double COVERAGE_INVALID_VALUE;  // -1.0
+	static const double COVERAGE_INVALID_VALUE;
 
 	/*!
 	 * \typedef CreationState
@@ -237,6 +238,44 @@ public:
 	 */
 	QString toString() const;
 
+	/*!
+	 * \brief Checks whether the state of the requirement is acceptable or not
+	 *
+	 * For instance, if there is some errors in the documents, a requirement A can be composed of a
+	 * requirement B that is itself composed of A ... in such a case, it is impossible to calculate
+	 * a coverage.
+	 *
+	 * The consistency checks performed are :
+	 * 1. Existence of the location file (the file in which the requirement is defined)
+	 * 2. Verify that there is no loop in the downstream requirements (A covered by B covered by C covered by A)
+	 * 3. Verify that there is no loop in the composing requirements (A composed of B and C, C composed of D and E, E composed of A and F)
+	 * \return
+	 * - true if there is no error and the requirement is consistent
+	 * - false if there is any inconsistency. In such a case, an AnalysisError has been added to
+	 *   ModelSngAnalysisErrors
+	 */
+	bool isConsistent() ;
+
+	/*!
+	 * \brief Look for loop in the downstream chain of a requirement
+	 * \param[inout]  dwnChain   Downstream chain A -> B -> C  (where -> stands for "covered by") in which
+	 *                           a loop may be found
+	 * \return
+	 * - true if a loop has been detected
+	 * - else false
+	 */
+	bool hasLoopInDownstream(QString& dwnChain) ;
+
+	/*!
+	 * \brief Look for loop in the composing chain of a requirement
+	 * \param[inout]  cmpChain   Composing chain A -> B -> C  (where -> stands for "is composed of") in which
+	 *                           a loop may be found
+	 * \return
+	 * - true if a loop has been detected
+	 * - else false
+	 */
+	bool hasLoopInComposingReqs(QString& cmpChain) ;
+
 private:
 	/*!
 	 * Creation state of the requirement, see CreationState
@@ -287,6 +326,13 @@ private:
 	 * requirement
 	 */
 	Requirement* __parent;
+
+	/*!
+	 * true if everything is properly defined for this requirement else false (location missing,
+	 * loop detected in downstream chain or in composing chain). By default, a requirement is not consistent
+	 * until it has been verified as consistent.
+	 */
+	bool __isConsistent ;
 
 	/*!
 	 * If the requirement is a composite of one or more other requirements, this

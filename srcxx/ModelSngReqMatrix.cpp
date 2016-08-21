@@ -198,28 +198,13 @@ void ModelSngReqMatrix::computeCoverage()
 	for (it = __reqsByName.begin(); it != __reqsByName.end() ; ++it)
 	{
 		Requirement& req = it.value();
-		QString req_id = req.getId();
-		IRequirementFilePtr reqFile = req.getLocation();
 
-		qDebug() << "ModelSngReqMatrix::computeCoverage - -------------------------------------------------------";
-		qDebug() << "ModelSngReqMatrix::computeCoverage - details of " << req_id;
-		qDebug().noquote() << it.value().toString();
-
-		// If the requirement is somewhere in space ... there is few hope to find its file ...
-		// and it must be reported as an error
-		if (!reqFile)
-		{
-			AnalysisError e(AnalysisError::WARNING,
-			                AnalysisError::CONSISTENCY,
-			                req.getExpectedBy(),
-			                QObject::trUtf8("Exigence attendue mais jamais définie : %1").arg(req_id));
-
-			ModelSngAnalysisErrors::instance().addError(e);
-			continue;
-		}
+		// If the requirement is inconsistent, it must be ignored
+		if (!req.isConsistent()) continue ;
 
 		// Otherwize, the requirement can be taken into account
-		qDebug() << "ModelSngReqMatrix::computeCoverage - Requirement coverage" << req.getCoverage();
+		QString req_id = req.getId();
+		IRequirementFilePtr reqFile = req.getLocation();
 		reqFile->addOneMoreRequirementCoverage(req.getCoverage());
 
 		// If any, downstream document can also be added
@@ -295,7 +280,7 @@ void ModelSngReqMatrix::computeCoverage()
 			}
 		}
 
-	// TODO WTF with the composite requirements ? maybe create another section called «Related Documents»
+		// TODO WTF with the composite requirements ? maybe create another section called «Related Documents»
 	}
 
 	// Data has been updated, the view can be freshened

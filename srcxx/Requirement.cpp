@@ -5,13 +5,23 @@
  * \author f.souliers
  */
 
+#include <QDebug>
+#include <limits>
+
 #include "Requirement.h"
 #include "IRequirementFile.h"
+#include "AnalysisError.h"
+#include "ModelSngAnalysisErrors.h"
 
 /*!
- * \brief A coverage value must be >= 0, so -1.0 can be used as invalid value
+ * \brief A coverage value must be >= 0, so lowest double can be used as invalid value
  */
-const double Requirement::COVERAGE_INVALID_VALUE = -1.0;
+constexpr double Requirement::COVERAGE_INVALID_VALUE = std::numeric_limits<double>::lowest() ;
+
+/*!
+ * \brief delimiter used in the construction of downstream / composing chain when looking for loops
+ */
+static const QString chainDelim = "->" ;
 
 Requirement::Requirement(QString id, CreationState s, const QString& expected_by)
 		: __reqState(s),
@@ -21,7 +31,8 @@ Requirement::Requirement(QString id, CreationState s, const QString& expected_by
 		  __expectedBy(expected_by),
 		  __coverage(COVERAGE_INVALID_VALUE),
 		  __downstreamRequirement(NULL),
-		  __parent(NULL)
+		  __parent(NULL),
+		  __isConsistent(false)
 
 {
 }
@@ -39,6 +50,9 @@ QString Requirement::getLocationId() const
 
 double Requirement::getCoverage()
 {
+	// if the requirement is not consistent, do not calculate its coverage
+	if (!__isConsistent) return(__coverage) ;
+
 	// If the coverage has already been computed (by recursive call),
 	// there is no need to compute it again
 	if (__coverage == COVERAGE_INVALID_VALUE)
@@ -54,15 +68,66 @@ double Requirement::getCoverage()
 		else
 		{
 			double sum = 0.0;
-			foreach(Requirement* r, __composingReqs){
-			sum += r->getCoverage();
-		}
+			foreach(Requirement* r, __composingReqs)
+			{
+				sum += r->getCoverage();
+			}
 
 			__coverage = sum / __composingReqs.count();
 		}
 	}
 
 	return (__coverage);
+}
+
+bool Requirement::isConsistent()
+{
+	bool errLoc = false ;
+	bool errDwn = false ;
+	bool errCmp = false ;
+
+	// 1. Check for requirement file
+	if (!__location)
+	{
+		AnalysisError e(AnalysisError::WARNING,
+		                AnalysisError::CONSISTENCY,
+		                __expectedBy,
+		                QObject::trUtf8("Exigence attendue mais jamais définie : %1").arg(__id));
+
+		ModelSngAnalysisErrors::instance().addError(e);
+		errLoc = true ;
+	}
+
+	// 2. Check for infinite loop in downstream requirements
+	// (A covers B, B covers C, C covers A)
+	QString chain = "" ;
+	errDwn = hasLoopInDownstream(chain) ;
+	if (errDwn)
+	{
+		AnalysisError e(AnalysisError::ERROR,
+		                AnalysisError::CONSISTENCY,
+		                __expectedBy,
+		                QObject::trUtf8("Rebouclage dans la couverture des exigences : %1").arg(chain));
+
+		ModelSngAnalysisErrors::instance().addError(e);
+	}
+
+	// 3. Check for infinite loop in composing requirements
+	// A composed of B, B composed of A
+	chain = "" ;
+	errCmp = hasLoopInComposingReqs(chain) ;
+	if (errCmp)
+	{
+		AnalysisError e(AnalysisError::ERROR,
+		                AnalysisError::CONSISTENCY,
+		                __expectedBy,
+		                QObject::trUtf8("Rebouclage dans la composition des exigences : %1").arg(chain));
+
+		ModelSngAnalysisErrors::instance().addError(e);
+	}
+
+	__isConsistent = !(errLoc || errDwn || errCmp) ;
+	return(__isConsistent) ;
 }
 
 QString Requirement::toString() const
@@ -120,4 +185,48 @@ QString Requirement::toString() const
 	}
 
 	return (out);
+}
+
+bool Requirement::hasLoopInDownstream(QString& dwnChain)
+{
+	bool retVal = false ;
+
+	if (dwnChain.contains(__id))
+	{
+		dwnChain += chainDelim + __id ;
+		retVal = true ;
+	}
+	else if (__downstreamRequirement)
+	{
+		dwnChain += chainDelim + __id ;
+		retVal = __downstreamRequirement->hasLoopInDownstream(dwnChain) ;
+	}
+
+	return(retVal) ;
+}
+
+bool Requirement::hasLoopInComposingReqs(QString& cmpChain)
+{
+	bool retVal = false ;
+
+	if (cmpChain.contains(__id))
+	{
+		cmpChain += chainDelim + __id ;
+		retVal = true ;
+	}
+	else if (__composingReqs.count() > 0)
+	{
+		cmpChain += chainDelim + __id ;
+		QString base = cmpChain ;
+
+		foreach(Requirement* r, __composingReqs)
+		{
+			retVal = r->hasLoopInComposingReqs(cmpChain) ;
+			if (retVal) break ;
+
+			cmpChain = base ; // reset cmpChain as it has been modified by recursive call of hasLoopInComposingReqs
+		}
+	}
+
+	return(retVal) ;
 }
