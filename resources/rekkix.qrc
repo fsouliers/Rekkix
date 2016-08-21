@@ -24,5 +24,6 @@
 		<file>template_files/csv/Report_fileDetails_reqRevCov_line.csv</file>
 		<file>template_files/csv/Report_summaryTable_base.csv</file>
 		<file>template_files/csv/Report_summaryTable_line.csv</file>
+		<file>icon/Rekkix_logo.svg</file>
 	</qresource>
 </RCC>

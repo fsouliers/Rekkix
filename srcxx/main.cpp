@@ -35,6 +35,7 @@ int main(int argc, char *argv[])
 
 	QApplication app(argc, argv);
 	app.setApplicationVersion(APP_VERSION);
+	app.setApplicationDisplayName(APP_VERSION) ;
 
 	RekkixPtr oRekkix;
 	if (argc == 1)
