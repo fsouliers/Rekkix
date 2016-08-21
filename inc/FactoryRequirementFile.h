@@ -19,7 +19,7 @@
  *
  * Available parser are :
  * - docx : parse the file as a MS Word file
- * - odt : parse the file as a LibreOffice text file --> TODO : not implemented yet
+ * - odt : parse the file as a LibreOffice text file
  * - txt : parse the file as a plain text file
  * - pdf : parse the file as a pdf file --> TODO : not implemented yet
  */

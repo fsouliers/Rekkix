@@ -18,6 +18,7 @@
  */
 class RequirementFile_odt : public IRequirementFile
 {
+
 public:
 
 	/*!
@@ -57,18 +58,6 @@ private:
 	 * \param[out] p_textNode  The QDomElement corresponding to the tag «text» below p_firstNode
 	 */
 	void __lookForFirstTextNode(const QDomElement& p_firstNode, QDomElement& p_textNode) ;
-
-	/*!
-	 * \brief Extracts the string contained below a given element
-	 *
-	 * According to the way the document is built, there are two possibilities to store text data :
-	 * - The data may be stored through several «span» tags (below a «p» tag)
-	 * - The data may de directly contained as text in a «p» tag
-	 * \param[in] p_elt  Element for/under which we are looking for a string on which the regex
-	 *                   (req_regex and so on) may match
-	 * \param[out] p_dataRead  Data read from p_elt. If no data is read, the string is empty.
-	 */
-	void __extractDataFromElement(const QDomElement& p_elt, QString& p_dataRead) ;
 };
 
 #endif /* REQUIREMENTFILEODT_H_ */

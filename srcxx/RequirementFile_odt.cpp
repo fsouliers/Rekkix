@@ -25,7 +25,6 @@ static char ZIP_BUFFER[ZIP_BUFFER_SIZE];  //!< 1MB char array, used to read the 
 static const QString ODT_XML_BODY_NODE = "body";  //!< OpenDocument specific XML tag for body
 static const QString ODT_XML_TEXT_NODE = "text";  //!< OpenDocument specific XML tag for text
 static const QString ODT_XML_PARAGRAPH_NODE = "p";  //!< OpenDocument specific XML tag for paragraph
-static const QString ODT_XML_SPAN_NODE = "span";  //!< OpenDocument specific XML tag for text
 
 RequirementFile_odt::RequirementFile_odt(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: IRequirementFile(p_cnfFile)
@@ -138,33 +137,6 @@ void RequirementFile_odt::__lookForFirstTextNode(const QDomElement& p_firstNode,
 
 }
 
-void RequirementFile_odt::__extractDataFromElement(const QDomElement& p_elt, QString& p_dataRead)
-{
-	// if the element has text or child elements ... it has child nodes
-	if (p_elt.hasChildNodes())
-	{
-		QDomElement eltSpan = p_elt.firstChildElement(ODT_XML_SPAN_NODE) ;
-		if (!eltSpan.isNull())
-		{
-			// Data is in separated «span» elements ... let's aggregate it
-			for (; !eltSpan.isNull() ; eltSpan = eltSpan.nextSiblingElement(ODT_XML_SPAN_NODE))
-			{
-				p_dataRead += eltSpan.text() ;
-			}
-		}
-		else
-		{
-			// Data is directly mentioned as text in the element
-			p_dataRead = p_elt.text() ;
-		}
-	}
-	else
-	{
-		p_dataRead = "" ;
-	}
-}
-
-
 void RequirementFile_odt::parseFile()
 {
 	// Read raw data from the document and store it into text_content
@@ -186,8 +158,7 @@ void RequirementFile_odt::parseFile()
 	for (; !elt.isNull(); elt = elt.nextSiblingElement(ODT_XML_PARAGRAPH_NODE))
 	{
 		qDebug() << "RequirementFile_odt::parseFile looking for data ..." ;
-		QString data = "";
-		__extractDataFromElement(elt, data) ;
+		QString data = elt.text();
 		if (data.isEmpty()) continue ;
 
 		qDebug() << "RequirementFile_odt::parseFile DATA HAVE BEEN EXTRACTED :" << data ;
