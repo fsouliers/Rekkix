@@ -22,6 +22,8 @@
  */
 class ModelCompositeReqs : public QAbstractItemModel
 {
+	Q_OBJECT
+
 public:
 
 	/*!

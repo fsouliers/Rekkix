@@ -18,6 +18,8 @@
  */
 class ModelReqs : public QAbstractItemModel
 {
+	Q_OBJECT
+
 public:
 
 	/*!

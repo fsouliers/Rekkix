@@ -17,6 +17,8 @@
  */
 class ModelConfigurationErrors : public QAbstractItemModel
 {
+	Q_OBJECT
+
 public:
 
 	/*!
