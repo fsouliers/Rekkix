@@ -312,222 +312,173 @@ void ModelConfiguration::setFile(const char* p_filepath, ModelConfigurationError
 	errModel.refresh();
 }
 
+void ModelConfiguration::__regexCheckValidityAndGroups(const CnfFileAttributesMap_t& configured_file,
+                                                       QVector<ModelConfigurationErrors::error_t>& errors)
+{
+	ModelConfigurationErrors::error_t e ;
+	QRegularExpression regex;
+	QString attrName ;
+	QString attrVal ;
+	QString file_id = configured_file[REQFILE_ATTR_ID] ;
+	QString msg ;
+
+	// simple inside lambda functions to avoid rewriting the same thing several times
+	auto addContentError = [&e, &msg, &errors]()
+	{
+		e.severity = ModelConfigurationErrors::ERROR;
+		e.category = ModelConfigurationErrors::CONTENT;
+		e.description = msg ;
+		errors.append(e);
+	} ;
+
+	auto isValidPattern = [&e, &regex, &msg, &errors, &file_id, &attrVal, &attrName]()
+	{
+		regex.setPattern(attrVal);
+		bool b = regex.isValid() ;
+		if (!b)
+		{
+			msg = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(attrName);
+			e.severity = ModelConfigurationErrors::ERROR;
+			e.category = ModelConfigurationErrors::CONTENT;
+			e.description = msg ;
+			errors.append(e);
+		}
+		return(b) ;
+	} ;
+
+	// Some regex must be checked only if they are not empty (empty value is acceptable)
+	attrName = REQFILE_ATTR_CMPREGEX ;
+	attrVal = configured_file[REQFILE_ATTR_CMPREGEX] ;
+	if (!attrVal.isEmpty())
+	{
+		// if REQFILE_ATTR_CMPREGEX is not empty, then it must follow these rules
+		if (isValidPattern() && !regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQLST))
+		{
+			msg = QObject::trUtf8("Fichier %1, la regex d'identification d'exigence composite ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQLST).arg(attrVal);
+			addContentError() ;
+		}
+
+		if (configured_file[REQFILE_ATTR_CMPSEPARATOR].isEmpty())
+		{
+			msg = QObject::trUtf8("Fichier %1, l'attribut %2 ne peut pas être vide car %3 n'est pas vide").arg(file_id).arg(REQFILE_ATTR_CMPSEPARATOR).arg(attrName);
+			addContentError() ;
+		}
+	}
+
+	attrName = REQFILE_ATTR_COVREGEX ;
+	attrVal = configured_file[REQFILE_ATTR_COVREGEX] ;
+	if (!attrVal.isEmpty())
+	{
+		// if REQFILE_ATTR_COVREGEX is not empty, then it must follow these rules
+		if (isValidPattern() && !regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQLST))
+		{
+			msg = QObject::trUtf8("Fichier %1, la regex de couverture d'exigence ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQLST).arg(attrVal);
+			addContentError() ;
+		}
+
+		if (configured_file[REQFILE_ATTR_COVSEPARATOR].isEmpty())
+		{
+			msg = QObject::trUtf8("Fichier %1, l'attribut %2 ne peut pas être vide car %3 n'est pas vide").arg(file_id).arg(REQFILE_ATTR_COVSEPARATOR).arg(attrName);
+			addContentError() ;
+		}
+	}
+
+	attrName = REQFILE_ATTR_REQREGEX ;
+	attrVal = configured_file[REQFILE_ATTR_REQREGEX] ;
+	if (attrVal.isEmpty())
+	{
+		// REQFILE_ATTR_REQREGEX is mandatory : it cannot be empty
+		msg = QObject::trUtf8("Fichier %1, l'attribut %2 ne peut pas être vide").arg(file_id).arg(REQFILE_ATTR_REQREGEX);
+		addContentError() ;
+	}
+	else if (isValidPattern() && !regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQID))
+	{
+		msg = QObject::trUtf8("Fichier %1, la regex d'identification d'exigence ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQID).arg(REQFILE_ATTR_REQREGEX);
+		addContentError() ;
+	}
+
+	attrName = REQFILE_ATTR_REQREGEX ;
+	attrVal = configured_file[REQFILE_ATTR_REQREGEX] ;
+	if (!attrVal.isEmpty())
+	{
+		// no special requirement for REQFILE_ATTR_STOPAFTERREGEX but being valid if it is not empty
+		isValidPattern() ;
+	}
+}
+
 bool ModelConfiguration::__hasAReqFileConsistecyError(const CnfFileAttributesMap_t& configured_file,
                                                       ModelConfigurationErrorsRef errModel)
 {
 	bool retVal = true;  // errors by default
 	QVector<ModelConfigurationErrors::error_t> errors;
 	ModelConfigurationErrors::error_t e;
-	QRegularExpression regex;
+	QString msg ;
+	QString file_id = configured_file[REQFILE_ATTR_ID];
 
-	QString file_id;
-
-	// Checking the id & path attributes
-	if (configured_file[REQFILE_ATTR_ID].isEmpty())
+	// simple inside lambda functions to avoid rewriting the same thing several times
+	auto addContentError = [&e, &msg, &errors]()
 	{
-		qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors attribut id non trouvé ...";
-
-		file_id = QObject::trUtf8("Non identifié");
-
-		if (configured_file[REQFILE_ATTR_PATH].isEmpty())
-		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors ... et attribut path non trouvé non plus";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Attributs %1 et %2 manquants").arg(REQFILE_ATTR_ID).arg(REQFILE_ATTR_PATH);
-			errors.append(e);
-		}
-		else
-		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors ... mais attribut path trouvé";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Attribut %1 manquant pour le fichier %2").arg(REQFILE_ATTR_ID).arg(configured_file[REQFILE_ATTR_PATH]);
-			errors.append(e);
-
-			QFileInfo fi(configured_file[REQFILE_ATTR_PATH]);
-			if (!fi.exists())
-			{
-				qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors ... et malgré tout le fichier n'existe pas" << configured_file[REQFILE_ATTR_PATH];
-				e.severity = ModelConfigurationErrors::ERROR;
-				e.category = ModelConfigurationErrors::FILESYSTEM;
-				e.description = QObject::trUtf8("Le fichier %1 n'existe pas").arg(configured_file[REQFILE_ATTR_PATH]);
-				errors.append(e);
-			}
-		}
-	}
-	else
-	{
-		file_id = configured_file[REQFILE_ATTR_ID];
-		qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors attribut id trouvé " << file_id;
-
-		if (configured_file[REQFILE_ATTR_PATH].isEmpty())
-		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors ... mais pas path";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Attribut %1 manquant pour le fichier %2").arg(REQFILE_ATTR_PATH).arg(file_id);
-
-			errors.append(e);
-		}
-		else
-		{
-			// the path must be defined
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors ... et path trouvé";
-			QFileInfo fi(configured_file[REQFILE_ATTR_PATH]);
-			if (!fi.exists())
-			{
-				qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors ... mais le fichier n'existe pas " << configured_file[REQFILE_ATTR_PATH];
-				e.severity = ModelConfigurationErrors::ERROR;
-				e.category = ModelConfigurationErrors::FILESYSTEM;
-				e.description = QObject::trUtf8("Le fichier %1 n'existe pas").arg(configured_file[REQFILE_ATTR_PATH]);
-				errors.append(e);
-			}
-
-			// And in any case, the ID cannot exist more than once
-			if (__reqFiles.contains(file_id))
-			{
-				e.severity = ModelConfigurationErrors::ERROR;
-				e.category = ModelConfigurationErrors::CONTENT;
-				e.description = QObject::trUtf8("Identifiant %1 défini plusieurs fois").arg(file_id);
-				errors.append(e);
-			}
-		}
-	}
-
-	// TODO when rewriting this big ball of mud --> check that the parser is acceptable or filename acceptable (in case there is no parser)
-
-	// Checking the req_regex attribute
-	if (configured_file[REQFILE_ATTR_REQREGEX].isEmpty())
-	{
-		qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors req_regex non trouvé";
 		e.severity = ModelConfigurationErrors::ERROR;
 		e.category = ModelConfigurationErrors::CONTENT;
-		e.description = QObject::trUtf8("Attribut %1 manquant pour le fichier %2").arg(REQFILE_ATTR_REQREGEX).arg(file_id);
+		e.description = msg ;
 		errors.append(e);
+	} ;
+
+	/*
+	 * Check for the following consistency rules :
+	 * - if REQFILE_ATTR_CMPREGEX not empty :
+	 *      - REQFILE_ATTR_CMPSEPARATOR must not be empty
+	 *      - REQFILE_ATTR_CMPREGEX must be a valid regex and contain a group named REQFILE_GRPNAME_REQLST
+	 *
+	 * - if REQFILE_ATTR_COVREGEX not empty :
+	 *      - REQFILE_ATTR_COVSEPARATOR must not be empty
+	 *      - REQFILE_ATTR_COVREGEX must be a valid regex and contain a group named REQFILE_GRPNAME_REQLST
+	 *
+	 * - REQFILE_ATTR_HASDWN must not be empty
+	 *
+	 * - REQFILE_ATTR_HASUP must not be empty
+	 *
+	 * - REQFILE_ATTR_PATH must be an existing file and must be readable
+	 *
+	 * - REQFILE_ATTR_REQREGEX cannot be empty, must be a valid regex and contain a group named REQFILE_GRPNAME_REQID
+	 *
+	 * - if not empty, REQFILE_ATTR_STOPAFTERREGEX must be a valid regex
+	 */
+	__regexCheckValidityAndGroups(configured_file, errors) ;
+
+	if (configured_file[REQFILE_ATTR_HASDWN].isEmpty())
+	{
+		msg = QObject::trUtf8("Fichier %1, l'attribut %2 ne peut pas être vide").arg(file_id).arg(REQFILE_ATTR_HASDWN);
+		addContentError() ;
+	}
+
+	if (configured_file[REQFILE_ATTR_HASUP].isEmpty())
+	{
+		msg = QObject::trUtf8("Fichier %1, l'attribut %2 ne peut pas être vide").arg(file_id).arg(REQFILE_ATTR_HASUP);
+		addContentError() ;
+	}
+
+	QString file_path = configured_file[REQFILE_ATTR_PATH] ;
+	QFileInfo fi(file_path);
+	if (!fi.exists() || !fi.isFile())
+	{
+		msg = QObject::trUtf8("Fichier %1, le fichier %2 n'existe pas ou n'est pas de type fichier").arg(file_id).arg(file_path);
+		addContentError() ;
 	}
 	else
 	{
-		regex.setPattern(configured_file[REQFILE_ATTR_REQREGEX]);
-		if (!regex.isValid())
+		QFile fic(file_path) ;
+		if (!fic.open(QIODevice::ReadOnly))
 		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors req_regex expression invalide";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_REQREGEX);
-			errors.append(e);
+			msg = QObject::trUtf8("Fichier %1, le fichier %2 n'est pas accessible en lecture").arg(file_id).arg(file_path);
+			addContentError() ;
 		}
 		else
 		{
-			if (!regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQID))
-			{
-				e.severity = ModelConfigurationErrors::ERROR;
-				e.category = ModelConfigurationErrors::CONTENT;
-				e.description = QObject::trUtf8("Fichier %1, la regex d'identification d'exigence ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQID).arg(REQFILE_ATTR_REQREGEX);
-				errors.append(e);
-			}
+			fic.close() ;
 		}
 	}
 
-	// Checking the cmp_regex attributes
-	if (!configured_file[REQFILE_ATTR_CMPREGEX].isEmpty())
-	{
-		if (configured_file[REQFILE_ATTR_CMPSEPARATOR].isEmpty())
-		{
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1 : si %2 est mentionné, alors %3 est obligatoire").arg(file_id).arg(REQFILE_ATTR_CMPREGEX).arg(REQFILE_ATTR_CMPSEPARATOR);
-			errors.append(e);
-		}
-
-		// Moreover check the regex validity
-		regex.setPattern(configured_file[REQFILE_ATTR_CMPREGEX]);
-		if (!regex.isValid())
-		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors cmp_regex expression invalide";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_CMPREGEX);
-			errors.append(e);
-		}
-		else
-		{
-			if (!regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQLST))
-			{
-				e.severity = ModelConfigurationErrors::ERROR;
-				e.category = ModelConfigurationErrors::CONTENT;
-				e.description = QObject::trUtf8("Fichier %1, la regex d'identification de composition ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQLST).arg(REQFILE_ATTR_CMPREGEX);
-				errors.append(e);
-			}
-		}
-	}
-	else
-	{
-		if (!configured_file[REQFILE_ATTR_CMPSEPARATOR].isEmpty())
-		{
-			e.severity = ModelConfigurationErrors::WARNING;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1 : %2 mentionné, alors que %3 ne l'a pas été").arg(file_id).arg(REQFILE_ATTR_CMPSEPARATOR).arg(REQFILE_ATTR_CMPREGEX);
-			errors.append(e);
-		}
-	}
-
-	// Checking the cov_regex attributes
-	if (!configured_file[REQFILE_ATTR_COVREGEX].isEmpty())
-	{
-		if (configured_file[REQFILE_ATTR_COVSEPARATOR].isEmpty())
-		{
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1 : si %2 est mentionné, alors %3 est obligatoire").arg(file_id).arg(REQFILE_ATTR_COVREGEX).arg(REQFILE_ATTR_COVSEPARATOR);
-			errors.append(e);
-		}
-
-		// Moreover check the regex validity
-		regex.setPattern(configured_file[REQFILE_ATTR_COVREGEX]);
-		if (!regex.isValid())
-		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors cov_regex expression invalide";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_COVREGEX);
-			errors.append(e);
-		}
-		else
-		{
-			if (!regex.namedCaptureGroups().contains(REQFILE_GRPNAME_REQLST))
-			{
-				e.severity = ModelConfigurationErrors::ERROR;
-				e.category = ModelConfigurationErrors::CONTENT;
-				e.description = QObject::trUtf8("Fichier %1, la regex d'identification de couverture ne contient pas de groupe %2 : %3").arg(file_id).arg(REQFILE_GRPNAME_REQLST).arg(REQFILE_ATTR_COVREGEX);
-				errors.append(e);
-			}
-		}
-	}
-	else
-	{
-		if (!configured_file[REQFILE_ATTR_COVSEPARATOR].isEmpty())
-		{
-			e.severity = ModelConfigurationErrors::WARNING;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1 : %2 mentionné, alors que %3 ne l'a pas été").arg(file_id).arg(REQFILE_ATTR_COVSEPARATOR).arg(REQFILE_ATTR_COVREGEX);
-			errors.append(e);
-		}
-	}
-
-	// checking the stopafter regex
-	if (!configured_file[REQFILE_ATTR_STOPAFTERREGEX].isEmpty())
-	{
-		regex.setPattern(configured_file[REQFILE_ATTR_STOPAFTERREGEX]);
-		if (!regex.isValid())
-		{
-			qDebug() << "ModelConfiguration::__hasAReqFileConsistecyErrors stopafter_regex expression invalide";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Fichier %1, regex pour %2 invalide").arg(file_id).arg(REQFILE_ATTR_STOPAFTERREGEX);
-			errors.append(e);
-		}
-	}
 
 	// compute result
 	if (errors.count() > 0)
@@ -549,42 +500,41 @@ bool ModelConfiguration::__hasAnOutputFileConsistecyError(const CnfFileAttribute
 	bool retVal = true;  // errors by default
 	ModelConfigurationErrors::error_t e;
 	QVector<ModelConfigurationErrors::error_t> errors;
+	QString msg ;
+
+	// simple inside lambda functions to avoid rewriting the same thing several times
+	auto addContentError = [&e, &msg, &errors]()
+	{
+		e.severity = ModelConfigurationErrors::ERROR;
+		e.category = ModelConfigurationErrors::CONTENT;
+		e.description = msg ;
+		errors.append(e);
+	} ;
 
 	if (configured_file[OUTPUT_ATTR_PATH].isEmpty())
 	{
-		qDebug() << "ModelConfiguration::__hasAnOutputFileConsistecyErrors attribut path non trouvé";
-		e.severity = ModelConfigurationErrors::ERROR;
-		e.category = ModelConfigurationErrors::CONTENT;
-		e.description = QObject::trUtf8("Attributs %1 manquant sur un fichier de description de sortie").arg(OUTPUT_ATTR_PATH);
-		errors.append(e);
+		msg = QObject::trUtf8("Attributs %1 manquant sur un fichier de description de sortie").arg(OUTPUT_ATTR_PATH);
+		addContentError() ;
 	}
 
 	if (configured_file[OUTPUT_ATTR_WRITER].isEmpty())
 	{
-		qDebug() << "ModelConfiguration::__hasAnOutputFileConsistecyErrors attribut writer non trouvé";
-		e.severity = ModelConfigurationErrors::ERROR;
-		e.category = ModelConfigurationErrors::CONTENT;
-		e.description = QObject::trUtf8("Attributs %1 manquant sur un fichier de description de sortie").arg(OUTPUT_ATTR_WRITER);
-		errors.append(e);
+		msg = QObject::trUtf8("Attributs %1 manquant sur un fichier de description de sortie").arg(OUTPUT_ATTR_WRITER);
+		addContentError() ;
 	}
 	else
 	{
 		if (!OUTPUT_SUPPORTED_EXT.contains(configured_file[OUTPUT_ATTR_WRITER]))
 		{
-			qDebug() << "ModelConfiguration::__hasAnOutputFileConsistecyErrors writer non supporté";
-			e.severity = ModelConfigurationErrors::ERROR;
-			e.category = ModelConfigurationErrors::CONTENT;
-			e.description = QObject::trUtf8("Le %1 spécifié suivant n'est pas supporté : %2").arg(OUTPUT_ATTR_WRITER).arg(configured_file[OUTPUT_ATTR_WRITER]);
-			errors.append(e);
+			msg = QObject::trUtf8("Le %1 spécifié suivant n'est pas supporté : %2").arg(OUTPUT_ATTR_WRITER).arg(configured_file[OUTPUT_ATTR_WRITER]);
+			addContentError() ;
 		}
 	}
 
 	if (configured_file[OUTPUT_ATTR_WRITER] == OUTPUT_ATTR_VALUE_CSV && configured_file[OUTPUT_ATTR_DELIMITER].isEmpty())
 	{
-		e.severity = ModelConfigurationErrors::WARNING;
-		e.category = ModelConfigurationErrors::CONTENT;
-		e.description = QObject::trUtf8("Le délimiteur n'est pas spécifié sur une sortie de type %1").arg(OUTPUT_ATTR_VALUE_CSV);
-		errors.append(e);
+		msg = QObject::trUtf8("Le délimiteur n'est pas spécifié sur une sortie de type %1").arg(OUTPUT_ATTR_VALUE_CSV);
+		addContentError() ;
 	}
 
 	// compute result

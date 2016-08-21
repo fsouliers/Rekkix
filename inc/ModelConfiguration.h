@@ -286,6 +286,17 @@ private:
 	 * \param[inout] errModel     used to store every configuration error, so it can be displayed
 	 */
 	void __readSectionOutputs(const QString& configFilePath, ModelConfigurationErrorsRef errModel);
+
+
+	/*!
+	 * \brief for a given regex, will check if it is acceptable or not
+	 *
+	 * According to the attribute name provided to the method, it will verify that this attribute
+	 * is consistent (regex validity if applicable, groups defined if applicable)
+	 * \param[in] configured_file  Configuration map for the current file
+	 * \param[inout] errors        Vector of errors found
+	 */
+	void __regexCheckValidityAndGroups(const CnfFileAttributesMap_t& configured_file, QVector<ModelConfigurationErrors::error_t>& errors) ;
 };
 
 /*!
