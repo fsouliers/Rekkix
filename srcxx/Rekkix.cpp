@@ -259,6 +259,7 @@ void Rekkix::slt_generateReports(bool isBatchMode)
 		QFile fout(outFilePath);
 		fout.open(QIODevice::WriteOnly | QIODevice::Text);
 		QTextStream out_stream(&fout);
+		out_stream.setCodec("UTF-8");
 		out_stream << s_base;
 		fout.close();
 	}

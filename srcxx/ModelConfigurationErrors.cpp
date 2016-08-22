@@ -150,7 +150,7 @@ void ModelConfigurationErrors::appendWarningString(QString& str)
 		{
 			str += "\n" + QObject::trUtf8("Sévérité<%1> Catégorie<%2> Description<%3>").arg(__severityToString(e.severity))
 			                                                                           .arg(__categoryToString(e.category))
-			                                                                           .arg(e.description).toLatin1() ;
+			                                                                           .arg(e.description) ;
 		}
 	}
 }
