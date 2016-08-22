@@ -3,11 +3,8 @@
 *.slo
 *.lo
 *.o
-*.a
-*.la
 *.lai
 *.so
-*.dll
 *.dylib
 
 # Qt-es
@@ -41,3 +38,7 @@ CMakeLists.txt.user
 /.cproject
 /.project
 /doxydoc_generation.log
+/object_script.rekkix
+/object_script.rekkix.Debug
+/object_script.rekkix.Release
+/rekkix_resource.rc

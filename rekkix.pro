@@ -1,14 +1,18 @@
 # rekkix
 # released under the terms of the GNU General Public License
 
-# The project is an application
-TEMPLATE = app
-
-# The generated Makefile handles a debug and a release configuration
-CONFIG += c++11
+# Often changed parameters
 CONFIG += release
+VERSION = 0.1.0
 
+# The project is an application and we should avoid generating several configuration
+TEMPLATE = app
+CONFIG -= debug_and_release debug_and_release_target
 
+# Rekkix is coded using c++11 (eg, use of lamba function)
+CONFIG += c++11
+
+# Config targets
 CONFIG(debug, debug|release):TARGET = rekkix_dbg
 CONFIG(release, debug|release):TARGET = rekkix
 
@@ -23,9 +27,6 @@ win32 {
 # The widgets component has to be loaded
 QT += core widgets xml
 
-# Version Number
-VERSION = 0.1.0
-
 # Folders used for dependencies
 DEPENDPATH += ./src ./inc
 
@@ -37,8 +38,8 @@ DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 # Third party library : libzip
-win32:INCLUDEPATH += ./win32_libzip/inc
-win32:LIBS += -L./win32_libzip/lib/
+win32:INCLUDEPATH += ./win32_libs/libzip-1.1.3/inc/
+win32:LIBS += -L./win32_libs/libzip-1.1.3/lib/
 LIBS += -lzip -lz
 
 
