@@ -6,7 +6,7 @@
  */
 
 #include <QDebug>
-#include <QXmlStreamReader>
+#include <QDomElement>
 
 #include "zip.h"
 
@@ -22,8 +22,8 @@ static const char* DOCUMENT_FILE = "word/document.xml";
 static const int ZIP_BUFFER_SIZE = 1048576;  //!< Size of a 1MB array of char
 static char ZIP_BUFFER[ZIP_BUFFER_SIZE];  //!< 1MB char array, used to read the document.xml
 
+static const QString DOCX_XML_BODY_NODE = "body";  //!< MS Word specific XML tag for body
 static const QString DOCX_XML_PARAGRAPH_NODE = "p";  //!< MS Word specific XML tag for paragraph
-static const QString DOCX_XML_TEXT_NODE = "t";  //!< MS Word specific XML tag for text
 
 RequirementFile_docx::RequirementFile_docx(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: IRequirementFile(p_cnfFile)
@@ -105,56 +105,62 @@ void RequirementFile_docx::__readTextDataFromZippedFormat(QString& p_textData)
 void RequirementFile_docx::parseFile()
 {
 	// Read raw data from the document and store it into text_content
-	QString text_content;
-	__readTextDataFromZippedFormat(text_content);
+	QString* text_content = new QString();
+	__readTextDataFromZippedFormat(*text_content);
+	if (text_content->isEmpty())
+	{
+		delete(text_content) ;
+		return ; // errors have been logged --> nothing to do
+	}
 
-	// Parse XML stream
-	QXmlStreamReader xstr(text_content);
+	// Now looking to the «text» tag containing the real data that must be analyzed
+	QDomDocument* mainDoc = new QDomDocument();
+	QString errMsg = "" ;
+	int errLine = 0 ;
+	int errCol = 0 ;
+	if (!mainDoc->setContent(*text_content, true, &errMsg, &errLine, &errCol))
+	{
+		AnalysisError e(AnalysisError::ERROR,
+		                AnalysisError::PARSING,
+		                _cnfFile[ModelConfiguration::REQFILE_ATTR_ID],
+		                QObject::trUtf8("Parser DOCX : erreur setContent ligne<%1> col<%2> msg<%3>").arg(errLine).arg(errCol).arg(errMsg));
+
+		ModelSngAnalysisErrors::instance().addError(e);
+	}
+
+	QDomElement textRoot = mainDoc->documentElement().firstChildElement(DOCX_XML_BODY_NODE);
+	if (textRoot.isNull())
+	{
+		delete (text_content) ;
+		delete (mainDoc) ;
+		return ;
+	}
+
+	// Now we can walk through every paragraph and check for requirement stuff in it
 	QString current_req = "";
 	bool isCurrentReqAcceptable = false;  // just to avoid parsing parts of file if the current requirement isn't correct (eg already defined)
-	while (!xstr.atEnd())
+	QDomElement elt = textRoot.firstChildElement(DOCX_XML_PARAGRAPH_NODE);
+	for (; !elt.isNull(); elt = elt.nextSiblingElement(DOCX_XML_PARAGRAPH_NODE))
 	{
-		// just started a new paragraph, it has to be stored into a single string so the regexp can be matched on it
-		// ... so just make the whole paragraph a single string
-		QString data = "";
-		if (xstr.isStartElement() && xstr.name().toString() == DOCX_XML_PARAGRAPH_NODE)
-		{
-			while (!(xstr.isEndElement() && xstr.name().toString() == DOCX_XML_PARAGRAPH_NODE))
-			{
-				if (xstr.isStartElement() && xstr.name().toString() == DOCX_XML_TEXT_NODE)
-				{
-					data += QString::fromUtf8(xstr.readElementText().toStdString().c_str());
-				}
+		qDebug() << "RequirementFile_docx::parseFile looking for data ..." ;
+		QString data = elt.text();
+		if (data.isEmpty()) continue ;
 
-				xstr.readNext();
-			}
-		}
+		qDebug() << "RequirementFile_docx::parseFile DATA HAVE BEEN EXTRACTED :" << data ;
 
-		// If the «requirement definition» regex matches, then nothing more to do with this line
-		if (_hasStoredAnyRequirementDefinition(data, current_req, isCurrentReqAcceptable))
-		{
-			xstr.readNext();
-			continue ;
-		}
+		// If the «requirement definition» regex matches, then nothing more to do with this paragraph
+		if (_hasStoredAnyRequirementDefinition(data, current_req, isCurrentReqAcceptable)) continue ;
 
-		// If the the «composed of several requirements» regex matches, then nothing more to do with this line
+		// If the the «composed of several requirements» regex matches, then nothing more to do with this paragraph
 		if (isCurrentReqAcceptable && hasCmpRegex())
 		{
-			if (_hasStoredAnyExpectedCompositeRequirements(data, current_req))
-			{
-				xstr.readNext();
-				continue ;
-			}
+			if (_hasStoredAnyExpectedCompositeRequirements(data, current_req)) continue ;
 		}
 
 		// If the the «covering several requirements» regex matches, then nothing more to do with this line
 		if (isCurrentReqAcceptable && hasCovRegex())
 		{
-			if (_hasStoredAnyExpectedUpstreamRequirements(data, current_req))
-			{
-				xstr.readNext();
-				continue ;
-			}
+			if (_hasStoredAnyExpectedUpstreamRequirements(data, current_req)) continue ;
 		}
 
 		// if the stopAfter regex is reached, then stop parsing the file
@@ -162,8 +168,9 @@ void RequirementFile_docx::parseFile()
 		{
 			if (_mustStopParsing(data)) break ;
 		}
-
-		xstr.readNext();
 	}
+
+	delete(mainDoc) ;
+	delete(text_content) ;
 }
 
