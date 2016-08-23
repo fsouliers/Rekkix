@@ -38,9 +38,9 @@ DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
 # Third party library : libzip
-win32:INCLUDEPATH += ./win32_libs/libzip-1.1.3/inc/
-win32:LIBS += -L./win32_libs/libzip-1.1.3/lib/
-LIBS += -lzip -lz
+win32:INCLUDEPATH += ./win32_libs/libzip-1.1.3/inc/ ./win32_libs/poppler-0.45/include/poppler/cpp/
+win32:LIBS += -L./win32_libs/libzip-1.1.3/lib/ -L./win32_libs/poppler-0.45/bin/ C:/Qt/Tools/mingw530_32/i686-w64-mingw32/lib/libiconv.a
+LIBS += -lzip -lz -lpoppler-cpp 
 
 
 # all objects are generated at the same place
@@ -86,6 +86,7 @@ HEADERS += ./inc/AnalysisError.h \
            ./inc/Requirement.h \
            ./inc/RequirementFile_docx.h \ 
            ./inc/RequirementFile_odt.h \ 
+           ./inc/RequirementFile_pdf.h \ 
            ./inc/RequirementFile_txt.h
 
 # sources
@@ -107,6 +108,7 @@ SOURCES += ./srcxx/AnalysisError.cpp \
            ./srcxx/Requirement.cpp \
            ./srcxx/RequirementFile_docx.cpp \
            ./srcxx/RequirementFile_odt.cpp \
+           ./srcxx/RequirementFile_pdf.cpp \
            ./srcxx/RequirementFile_txt.cpp 
            
 
