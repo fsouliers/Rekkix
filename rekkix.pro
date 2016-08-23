@@ -37,9 +37,10 @@ INCLUDEPATH += ./inc ./ui_inc
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
-# Third party library : libzip
+# Third party library : libzip & libpoppler
 win32:INCLUDEPATH += ./win32_libs/libzip-1.1.3/inc/ ./win32_libs/poppler-0.45/include/poppler/cpp/
 win32:LIBS += -L./win32_libs/libzip-1.1.3/lib/ -L./win32_libs/poppler-0.45/bin/ C:/Qt/Tools/mingw530_32/i686-w64-mingw32/lib/libiconv.a
+unix:INCLUDEPATH += /usr/include/poppler/cpp/
 LIBS += -lzip -lz -lpoppler-cpp 
 
 
