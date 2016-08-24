@@ -25,6 +25,7 @@ static char ZIP_BUFFER[ZIP_BUFFER_SIZE];  //!< 1MB char array, used to read the 
 static const QString ODT_XML_BODY_NODE = "body";  //!< OpenDocument specific XML tag for body
 static const QString ODT_XML_TEXT_NODE = "text";  //!< OpenDocument specific XML tag for text
 static const QString ODT_XML_PARAGRAPH_NODE = "p";  //!< OpenDocument specific XML tag for paragraph
+static const QString ODT_XML_ANNOTATION_NODE = "annotation";  //!< OpenDocument specific XML tag for annotation (side note inside a paragraph)
 
 RequirementFile_odt::RequirementFile_odt(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: IRequirementFile(p_cnfFile)
@@ -158,7 +159,14 @@ void RequirementFile_odt::parseFile()
 	for (; !elt.isNull(); elt = elt.nextSiblingElement(ODT_XML_PARAGRAPH_NODE))
 	{
 		qDebug() << "RequirementFile_odt::parseFile looking for data ..." ;
-		QString data = elt.text();
+		QDomElement eltAnnotation = elt.firstChildElement(ODT_XML_ANNOTATION_NODE) ;
+		QString data = elt.text() ;
+
+		// if there is an annotation in the middle of the paragraph text, remove it so the paragraph
+		// can be really used
+		if (!eltAnnotation.isNull()) data.remove(eltAnnotation.text()) ;
+
+		// If there is no data ... no need to look for anything
 		if (data.isEmpty()) continue ;
 
 		qDebug() << "RequirementFile_odt::parseFile DATA HAVE BEEN EXTRACTED :" << data ;

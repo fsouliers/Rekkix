@@ -2,7 +2,7 @@
 # released under the terms of the GNU General Public License
 
 # Often changed parameters
-CONFIG += release
+CONFIG += debug
 VERSION = 0.1.0
 
 # The project is an application and we should avoid generating several configuration
@@ -35,7 +35,9 @@ INCLUDEPATH += ./inc ./ui_inc
 
 # Preprocessor defines (-D directives)
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
-CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+
+CONFIG(debug, debug|release):DEFINES -= QT_NO_DEBUG_OUTPUT
+CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT 
 
 # Third party library : libzip & libpoppler
 win32:INCLUDEPATH += ./win32_libs/libzip-1.1.3/inc/ ./win32_libs/poppler-0.45/include/poppler/cpp/
