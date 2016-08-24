@@ -42,3 +42,5 @@ CMakeLists.txt.user
 /object_script.rekkix.Debug
 /object_script.rekkix.Release
 /rekkix_resource.rc
+/object_script.rekkix_dbg
+/rekkix_dbg_resource.rc

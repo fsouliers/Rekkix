@@ -74,6 +74,5 @@ IRequirementFilePtr FactoryRequirementFile::getRequirementFile(const ModelConfig
 		else retPtr = NULL ;
 	}
 
-	// TODO : implement other file formats
 	return (retPtr);
 }

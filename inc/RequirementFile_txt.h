@@ -30,7 +30,7 @@ public:
 	virtual ~RequirementFile_txt();
 
 	/*!
-	 * \brief Parse the docx file and call the methods of ModelSngReqMatrix to store the requirements found
+	 * \brief Parse the txt file and call the methods of ModelSngReqMatrix to store the requirements found
 	 */
 	void parseFile();
 
