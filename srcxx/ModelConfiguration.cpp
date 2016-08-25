@@ -162,6 +162,7 @@ void ModelConfiguration::__readSectionFiles(const QString& configFilePath,
                                             ModelConfigurationErrorsRef errModel)
 {
 	QSettings configSettings(configFilePath, QSettings::IniFormat);
+	configSettings.setIniCodec("UTF-8") ;
 
 	// First read the defined files : store each configuration value for each expected attribute
 	configSettings.beginGroup(SECTION_REQFILES);
@@ -214,6 +215,7 @@ void ModelConfiguration::__readSectionOutputs(const QString& configFilePath,
                                             ModelConfigurationErrorsRef errModel)
 {
 	QSettings configSettings(configFilePath, QSettings::IniFormat);
+	configSettings.setIniCodec("UTF-8") ;
 
 	// First read the defined files : store each configuration value for each expected attribute
 	configSettings.beginGroup(SECTION_OUTPUT_FILES);
