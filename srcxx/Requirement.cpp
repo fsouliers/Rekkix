@@ -32,7 +32,8 @@ Requirement::Requirement(QString id, CreationState s, const QString& expected_by
 		  __coverage(COVERAGE_INVALID_VALUE),
 		  __downstreamRequirement(NULL),
 		  __parent(NULL),
-		  __isConsistent(false)
+		  __isConsistent(false),
+		  __isConsistencyAlreadyCalculated(false)
 
 {
 }
@@ -51,7 +52,7 @@ QString Requirement::getLocationId() const
 double Requirement::getCoverage()
 {
 	// if the requirement is not consistent, do not calculate its coverage
-	if (!__isConsistent) return(__coverage) ;
+	if (!__isConsistent) return(COVERAGE_INVALID_VALUE) ;
 
 	// If the coverage has already been computed (by recursive call),
 	// there is no need to compute it again
@@ -72,62 +73,80 @@ double Requirement::getCoverage()
 			{
 				sum += r->getCoverage();
 			}
-
-			__coverage = sum / __composingReqs.count();
 		}
 	}
 
 	return (__coverage);
 }
 
-bool Requirement::isConsistent()
+void Requirement::computeConsistency()
 {
 	bool errLoc = false ;
-	bool errDwn = false ;
+	bool errDwnLoop = false ;
+	bool errCmpLoop = false ;
 	bool errCmp = false ;
 
-	// 1. Check for requirement file
-	if (!__location)
+	if (!__isConsistencyAlreadyCalculated)
 	{
-		AnalysisError e(AnalysisError::WARNING,
-		                AnalysisError::CONSISTENCY,
-		                __expectedBy,
-		                QObject::trUtf8("Exigence attendue mais jamais définie : %1").arg(__id));
+		// 1. Check for requirement file
+		if (!__location)
+		{
+			AnalysisError e(AnalysisError::WARNING,
+			                AnalysisError::CONSISTENCY,
+			                __expectedBy,
+			                QObject::trUtf8("Exigence attendue mais définie dans aucun fichier : %1").arg(__id));
 
-		ModelSngAnalysisErrors::instance().addError(e);
-		errLoc = true ;
+			ModelSngAnalysisErrors::instance().addError(e);
+			errLoc = true ;
+		}
+
+
+		// 2. Check for infinite loop in downstream requirements
+		// (A covers B, B covers C, C covers A)
+		QString chain = "" ;
+		errDwnLoop = hasLoopInDownstream(chain) ;
+		if (errDwnLoop)
+		{
+			AnalysisError e(AnalysisError::ERROR,
+			                AnalysisError::CONSISTENCY,
+			                __expectedBy,
+			                QObject::trUtf8("%1 : Rebouclage dans la *couverture* des exigences : %2").arg(__id).arg(chain));
+
+			ModelSngAnalysisErrors::instance().addError(e);
+		}
+
+		// 3. Check for infinite loop in composing requirements
+		// A composed of B, B composed of A
+		chain = "" ;
+		errCmpLoop = hasLoopInComposingReqs(chain) ;
+		if (errCmpLoop)
+		{
+			AnalysisError e(AnalysisError::ERROR,
+			                AnalysisError::CONSISTENCY,
+			                __expectedBy,
+			                QObject::trUtf8("%1 : Rebouclage dans la *composition* des exigences : %2").arg(__id).arg(chain));
+
+			ModelSngAnalysisErrors::instance().addError(e);
+		}
+		else
+		{
+			// 4. Check for inconsistent requirements in composing requirements ; if there is a loop in composing
+			// requirements --> nothing to test, we already know it is invalid
+			errCmp = hasInvalidComposingReqs() ;
+			if (errCmp)
+			{
+				AnalysisError e(AnalysisError::ERROR,
+				                AnalysisError::CONSISTENCY,
+				                __expectedBy,
+				                QObject::trUtf8("%1 est composée d'au moins une exigence invalide").arg(__id));
+
+				ModelSngAnalysisErrors::instance().addError(e);
+			}
+		}
+
+		__isConsistent = !(errLoc || errDwnLoop || errCmpLoop || errCmp) ;
+		__isConsistencyAlreadyCalculated = true ;
 	}
-
-	// 2. Check for infinite loop in downstream requirements
-	// (A covers B, B covers C, C covers A)
-	QString chain = "" ;
-	errDwn = hasLoopInDownstream(chain) ;
-	if (errDwn)
-	{
-		AnalysisError e(AnalysisError::ERROR,
-		                AnalysisError::CONSISTENCY,
-		                __expectedBy,
-		                QObject::trUtf8("Rebouclage dans la couverture des exigences : %1").arg(chain));
-
-		ModelSngAnalysisErrors::instance().addError(e);
-	}
-
-	// 3. Check for infinite loop in composing requirements
-	// A composed of B, B composed of A
-	chain = "" ;
-	errCmp = hasLoopInComposingReqs(chain) ;
-	if (errCmp)
-	{
-		AnalysisError e(AnalysisError::ERROR,
-		                AnalysisError::CONSISTENCY,
-		                __expectedBy,
-		                QObject::trUtf8("Rebouclage dans la composition des exigences : %1").arg(chain));
-
-		ModelSngAnalysisErrors::instance().addError(e);
-	}
-
-	__isConsistent = !(errLoc || errDwn || errCmp) ;
-	return(__isConsistent) ;
 }
 
 QString Requirement::toString() const
@@ -226,6 +245,19 @@ bool Requirement::hasLoopInComposingReqs(QString& cmpChain)
 
 			cmpChain = base ; // reset cmpChain as it has been modified by recursive call of hasLoopInComposingReqs
 		}
+	}
+
+	return(retVal) ;
+}
+
+bool Requirement::hasInvalidComposingReqs()
+{
+	bool retVal = false ;
+
+	foreach(Requirement* r, __composingReqs)
+	{
+		r->computeConsistency() ;
+		retVal |= r->isConsistent() ;
 	}
 
 	return(retVal) ;

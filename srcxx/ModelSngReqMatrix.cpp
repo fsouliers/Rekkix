@@ -122,7 +122,7 @@ bool ModelSngReqMatrix::addDefinedRequirement(const QString& file_id, Requiremen
 	return (retval);
 }
 
-void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& file_id,
+void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& location,
                                                         const QString& p_parentId,
                                                         RequirementRef p_r)
 {
@@ -132,7 +132,7 @@ void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& file_id,
 	{
 		AnalysisError e(AnalysisError::ERROR,
 		                AnalysisError::PARSING,
-		                file_id,
+		                location,
 		                QObject::trUtf8("Tentative de définition de composition d'une exigence indéfinie (exigence composante %1)").arg(p_r.getId()));
 
 		ModelSngAnalysisErrors::instance().addError(e);
@@ -149,7 +149,7 @@ void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& file_id,
 	__reqsByName[req_id].setParent(&(__reqsByName[p_parentId]));
 }
 
-void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& file_id,
+void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& location,
                                                       const QString& p_reqId,
                                                       RequirementRef p_coveredReq)
 {
@@ -159,7 +159,7 @@ void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& file_id,
 	{
 		AnalysisError e(AnalysisError::ERROR,
 		                AnalysisError::PARSING,
-		                file_id,
+		                location,
 		                QObject::trUtf8("Tentative de définition de couverture d'une exigence indéfinie (exigence couverte : %1)").arg(p_coveredReq.getId()));
 
 		ModelSngAnalysisErrors::instance().addError(e);
@@ -176,7 +176,7 @@ void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& file_id,
 	{
 		AnalysisError e(AnalysisError::ERROR,
 		                AnalysisError::CONSISTENCY,
-		                __reqsByName[covered_req_id].getLocationId(),
+		                location,
 		                QObject::trUtf8("Couverture multiple : %1 déjà couverte par %2 et tentative de recouverture par %3").arg(covered_req_id).arg(__reqsByName[covered_req_id].getDownstreamRequirement()->getId()).arg(p_reqId));
 
 		ModelSngAnalysisErrors::instance().addError(e);
@@ -194,7 +194,17 @@ void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& file_id,
 
 void ModelSngReqMatrix::computeCoverage()
 {
+	qDebug() << "ModelSngReqMatrix::computeCoverage : consistency check" ;
 	QMap<QString, Requirement>::iterator it;
+
+	// First of all, compute consistency for all requirements
+	for (it = __reqsByName.begin(); it != __reqsByName.end() ; ++it)
+	{
+		Requirement& req = it.value();
+		req.computeConsistency() ;
+	}
+
+	// Then the upstream and downstream actually read can be updated
 	for (it = __reqsByName.begin(); it != __reqsByName.end() ; ++it)
 	{
 		Requirement& req = it.value();
@@ -205,7 +215,6 @@ void ModelSngReqMatrix::computeCoverage()
 		// Otherwize, the requirement can be taken into account
 		QString req_id = req.getId();
 		IRequirementFilePtr reqFile = req.getLocation();
-		reqFile->addOneMoreRequirementCoverage(req.getCoverage());
 
 		// If any, downstream document can also be added
 		RequirementPtr dw_req = req.getDownstreamRequirement();
@@ -281,6 +290,14 @@ void ModelSngReqMatrix::computeCoverage()
 		}
 
 		// TODO WTF with the composite requirements ? maybe create another section called «Related Documents»
+	}
+
+	// Finally, the coverage for each file can be calculated
+	QMap<QString, IRequirementFilePtr>::iterator file_it ;
+	for (file_it = __filesByFileId.begin(); file_it != __filesByFileId.end() ; ++file_it)
+	{
+		qDebug() << "ModelSngReqMatrix::computeCoverage : Computing coverage for " << file_it.key() ;
+		file_it.value()->computeCoverage() ;
 	}
 
 	// Data has been updated, the view can be freshened

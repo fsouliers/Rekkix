@@ -60,11 +60,11 @@ public:
 
 	/*!
 	 * \brief Add an expected requirement as it has been defined as a subelement of another one
-	 * \param[in] file_id file id being parsed in for witch the method has been called
-	 * \param[in] p_parentId The Id of the requirement composed of at least p_r
-	 * \param[in] p_r the requirement object which is a sublement of the requirement identified by p_parentId
+	 * \param[in] location    File id / requirement being parsed in for witch the method has been called
+	 * \param[in] p_parentId  The Id of the requirement composed of at least p_r
+	 * \param[in] p_r         The requirement object which is a sublement of the requirement identified by p_parentId
 	 */
-	void addExpectedCompositeRequirement(const QString& file_id, const QString& p_parentId, RequirementRef p_r);
+	void addExpectedCompositeRequirement(const QString& location, const QString& p_parentId, RequirementRef p_r);
 
 	/*!
 	 * \brief Add an expected requirement as it has been defined as covered by the current one
@@ -75,7 +75,7 @@ public:
 	 * \param[in] p_reqId current requirement that covers p_coveredReq
 	 * \param[in] p_coveredReq Requirement covered by the current one
 	 */
-	void addExpectedCoveredRequirement(const QString& file_id, const QString& p_reqId, RequirementRef p_coveredReq);
+	void addExpectedCoveredRequirement(const QString& location, const QString& p_reqId, RequirementRef p_coveredReq);
 
 	/*!
 	 * \brief Add a file containing requirements and parse it

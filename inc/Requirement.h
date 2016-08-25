@@ -44,7 +44,7 @@ public:
 	 * \param[in] id unique identifier of the requirement, as regex matched in a requirement document
 	 * \param[in] s  creation state of the requirement (has it been created after a requirement regex match or has it been
 	 *               created because it is quoted as a reference in another requirement)
-	 * \param[in] expected_by file id in witch the Requirement has been detected as expected
+	 * \param[in] expected_by file id and requirement in witch the Requirement has been detected as expected
 	 */
 	Requirement(QString id = "", CreationState s = Expected, const QString& expected_by = "");
 
@@ -239,7 +239,7 @@ public:
 	QString toString() const;
 
 	/*!
-	 * \brief Checks whether the state of the requirement is acceptable or not
+	 * \brief Computes whether the state of the requirement is acceptable or not
 	 *
 	 * For instance, if there is some errors in the documents, a requirement A can be composed of a
 	 * requirement B that is itself composed of A ... in such a case, it is impossible to calculate
@@ -254,7 +254,19 @@ public:
 	 * - false if there is any inconsistency. In such a case, an AnalysisError has been added to
 	 *   ModelSngAnalysisErrors
 	 */
-	bool isConsistent() ;
+	void computeConsistency() ;
+
+	/*!
+	 * \brief Getter for the consistency (see computeConsistency)
+	 * \return
+	 * - true if the requirement is consistent
+	 * - false else
+	 */
+	bool isConsistent()
+	{
+		return(__isConsistent) ;
+	}
+
 
 	/*!
 	 * \brief Look for loop in the downstream chain of a requirement
@@ -275,6 +287,14 @@ public:
 	 * - else false
 	 */
 	bool hasLoopInComposingReqs(QString& cmpChain) ;
+
+	/*!
+	 * \brief Look for invalid requirements in the composing chain of requirements
+	 * \return
+	 * - true if there is at least one invalid composing requirement
+	 * - false else
+	 */
+	bool hasInvalidComposingReqs() ;
 
 private:
 	/*!
@@ -333,6 +353,11 @@ private:
 	 * until it has been verified as consistent.
 	 */
 	bool __isConsistent ;
+
+	/*!
+	 * true if the consistency has already been calculated, else false
+	 */
+	bool __isConsistencyAlreadyCalculated ;
 
 	/*!
 	 * If the requirement is a composite of one or more other requirements, this

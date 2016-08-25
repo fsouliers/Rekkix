@@ -12,7 +12,7 @@
 #include "ModelSngAnalysisErrors.h"
 
 IRequirementFile::IRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
-		: _nbReqs(0), _sumOfCov(0.0), _avgCoverage(0.0), _cnfFile(p_cnfFile)
+		: _avgCoverage(0.0), _cnfFile(p_cnfFile)
 {
 	// regex validy is verified while reading the configuration file, see ModelConfiguration
 	_regexReq.setPattern(_cnfFile[ModelConfiguration::REQFILE_ATTR_REQREGEX]);
@@ -42,11 +42,32 @@ IRequirementFile::~IRequirementFile()
 
 }
 
-void IRequirementFile::addOneMoreRequirementCoverage(double p_coverage)
+void IRequirementFile::computeCoverage()
 {
-	_nbReqs += 1;
-	_sumOfCov += p_coverage;
-	_avgCoverage = _sumOfCov / _nbReqs;
+	QVector<Requirement*>::iterator it ;
+	double sum = 0.0 ;
+	bool invalidFound = false ;
+	for (it = _requirements.begin() ; it != _requirements.end() ; ++it)
+	{
+		if ((*it)->isConsistent())
+		{
+			sum += (*it)->getCoverage() ;
+		}
+		else
+		{
+			// if an invalid requirement is detected, note it but go on with calculating the coverage values
+			invalidFound = true ;
+		}
+	}
+
+	if (invalidFound)
+	{
+		_avgCoverage = Requirement::COVERAGE_INVALID_VALUE ;
+	}
+	else
+	{
+		_avgCoverage = sum / _requirements.count() ;
+	}
 }
 
 void IRequirementFile::addUpstreamDocument(const QString& p_fileId, IRequirementFile* p_file)
@@ -78,11 +99,12 @@ bool IRequirementFile::_hasStoredAnyRequirementDefinition(const QString& p_text,
 	QRegularExpressionMatch req_m = _regexReq.match(p_text);
 	if (req_m.hasMatch())
 	{
-		// the real requirement is the whole matching of the regex
-		p_reqfound = req_m.capturedTexts()[0];
+		// the real requirement list is only the group of the regex named REQFILE_GRPNAME_REQID,
+		// each requirement must be separated by ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
+		p_reqfound = req_m.captured(ModelConfiguration::REQFILE_GRPNAME_REQID);
 
 		// then it is possible to build a requirement object
-		Requirement r(p_reqfound, Requirement::Defined);
+		Requirement r(p_reqfound, Requirement::Defined, this->getFileId());
 		r.setLocation(this);
 		r.setMustBeCovered(mustHaveDownstreamDocuments());
 
@@ -103,14 +125,24 @@ bool IRequirementFile::_hasStoredAnyExpectedCompositeRequirements(const QString&
 	QRegularExpressionMatch cmp_m = _regexCmp.match(p_text);
 	if (cmp_m.hasMatch())
 	{
-		// the real requirement list is only the group of the regex (index 1 of the list, index 0 being the
-		// global match of the regex), each requirement must be separated by ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
-		QString tmp = cmp_m.capturedTexts()[1];
+		// the real requirement list is only the group of the regex named REQFILE_GRPNAME_REQLST,
+		// each requirement must be separated by ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
+		QString tmp = cmp_m.captured(ModelConfiguration::REQFILE_GRPNAME_REQLST);
+
+		QString loc_str ;
+		if (p_parentReqId.isEmpty())
+		{
+			loc_str = _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] ;
+		}
+		else
+		{
+			loc_str = _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] + " / " + p_parentReqId ;
+		}
 
 		foreach(QString s, tmp.split(_cnfFile[ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR]))
 		{
-			Requirement r(s.trimmed(), Requirement::Expected, _cnfFile[ModelConfiguration::REQFILE_ATTR_ID]);
-			ModelSngReqMatrix::instance().addExpectedCompositeRequirement(_cnfFile[ModelConfiguration::REQFILE_ATTR_ID], p_parentReqId, r);
+			Requirement r(s.trimmed(), Requirement::Expected, loc_str);
+			ModelSngReqMatrix::instance().addExpectedCompositeRequirement(loc_str, p_parentReqId, r);
 		}
 
 		return(true) ;
@@ -126,16 +158,26 @@ bool IRequirementFile::_hasStoredAnyExpectedUpstreamRequirements(const QString& 
 	QRegularExpressionMatch cov_m = _regexCov.match(p_text);
 	if (cov_m.hasMatch())
 	{
-		qDebug() << "IRequirementFile::_hasExpectedUpstreamRequirements MATCH POINT" << cov_m.capturedTexts() ;
+		qDebug() << "IRequirementFile::_hasExpectedUpstreamRequirements regex match :" << cov_m.capturedTexts() ;
 
-		// the real requirement list is only the group of the regex (index 1 of the list, index 0 being the
-		// global match of the regex), each requirement must be separated by ModelConfiguration::REQFILE_ATTR_COVSEPARATOR
-		QString tmp = cov_m.capturedTexts()[1];
+		// the real requirement list is only the group of the regex named REQFILE_GRPNAME_REQLST,
+		// each requirement must be separated by ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
+		QString tmp = cov_m.captured(ModelConfiguration::REQFILE_GRPNAME_REQLST);
+
+		QString loc_str ;
+		if (p_currentReqId.isEmpty())
+		{
+			loc_str = _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] ;
+		}
+		else
+		{
+			loc_str = _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] + " / " + p_currentReqId ;
+		}
 
 		foreach(QString s, tmp.split(_cnfFile[ModelConfiguration::REQFILE_ATTR_COVSEPARATOR]))
 		{
-			Requirement r(s.trimmed(), Requirement::Expected, _cnfFile[ModelConfiguration::REQFILE_ATTR_ID]);
-			ModelSngReqMatrix::instance().addExpectedCoveredRequirement(_cnfFile[ModelConfiguration::REQFILE_ATTR_ID], p_currentReqId, r);
+			Requirement r(s.trimmed(), Requirement::Expected, loc_str);
+			ModelSngReqMatrix::instance().addExpectedCoveredRequirement(loc_str, p_currentReqId, r);
 		}
 
 		return(true) ;

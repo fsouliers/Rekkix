@@ -140,18 +140,9 @@ public:
 	}
 
 	/*!
-	 * \brief Adds a confirmed requirement and its coverage
-	 * \param[in] p_coverage  Coverage of the requirement to add, so it is possible for the method to
-	 *                        calculate the new value of _avgCoverage
-	 *
-	 * During file parsing phase, it is impossible to store the number of requirements as the knowledge of
-	 * all the requirements is mandatory to ensure the consistency of its definition. For instance a
-	 * requirement defined several times is an error and must not be taken into account in file coverage.
-	 *
-	 * As a consequence, during coverage processing, this method should be used to add a requirement that has no
-	 * error to the number of requirements of the file and update the average coverage of the file.
+	 * \brief compute the average coverage for the file
 	 */
-	void addOneMoreRequirementCoverage(double p_coverage);
+	void computeCoverage();
 
 	/*!
 	 * \brief Stores a pointer to a requirement file, considering the pointed file is an upstream document
@@ -227,23 +218,6 @@ public:
 	}
 
 protected:
-	/*!
-	 * \brief Number of requirements identified in the file.
-	 *
-	 * This value is not intended to be set during parsing of the file. Indeed, to avoid misprogramming of
-	 * parsers, those RequirementFile_xxx (eg RequirementFile_docx) must only take care of parsing files.
-	 * This value is computed during coverage computation when all the requirements of all the files are
-	 * known and usable by the common abstract part of the software (see ModelSngReqMatrix::computeCoverage)
-	 */
-	int _nbReqs;
-
-	/*!
-	 * \brief Sum of requirements coverage.
-	 *
-	 * This attribute is calculated during coverage computing.
-	 */
-	double _sumOfCov;
-
 	/*!
 	 * \brief Average coverage ... _sumOfCov / _nbReqs ... at the end of coverage computing
 	 */
