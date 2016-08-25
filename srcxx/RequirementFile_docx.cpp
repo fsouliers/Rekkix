@@ -126,6 +126,10 @@ void RequirementFile_docx::parseFile()
 		                QObject::trUtf8("Parser DOCX : erreur setContent ligne<%1> col<%2> msg<%3>").arg(errLine).arg(errCol).arg(errMsg));
 
 		ModelSngAnalysisErrors::instance().addError(e);
+
+		delete(text_content) ;
+		delete(mainDoc) ;
+		return ;
 	}
 
 	QDomElement* textRoot = new QDomElement() ;
