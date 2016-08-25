@@ -5,7 +5,14 @@ makefiles:
 
 .PHONY: deploy
 deploy:
-	windeployqt --release --no-quick-import --dir ./deploy/ --force --compiler-runtime --no-webkit2 --no-angle --no-opengl-sw ./bin/rekkix.exe
+	cp -f ./win32_libs/libzip-1.1.3/lib/*.dll ./deploy/
+	cp -f ./win32_libs/poppler-0.45/bin/*.dll ./deploy/
+	windeployqt --release --no-quick-import --dir ./deploy/ --force --compiler-runtime --no-webkit2 --no-angle --no-opengl-sw ./bin/windows/rekkix.exe
+	cp -f ./bin/windows/rekkix.exe ./deploy/
+	cp -f C:/Qt/5.7/mingw53_32/bin/libstdc++-6.dll ./deploy/
+	cp -f C:/Qt/5.7/mingw53_32/bin/libgcc_s_dw2-1.dll ./deploy/
+	cp -f C:/Qt/5.7/mingw53_32/bin/libwinpthread-1.dll ./deploy/
+	
 
 .PHONY: doxydoc
 doxydoc:

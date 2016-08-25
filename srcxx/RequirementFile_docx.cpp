@@ -34,7 +34,7 @@ RequirementFile_docx::~RequirementFile_docx()
 {
 }
 
-void RequirementFile_docx::__readTextDataFromZippedFormat(QString& p_textData)
+void RequirementFile_docx::__readTextDataFromZippedFormat(QString* p_textData)
 {
 	int err;
 	struct zip* zipfile = zip_open(_cnfFile[ModelConfiguration::REQFILE_ATTR_PATH].toStdString().c_str(),
@@ -51,7 +51,7 @@ void RequirementFile_docx::__readTextDataFromZippedFormat(QString& p_textData)
 
 		ModelSngAnalysisErrors::instance().addError(e);
 
-		p_textData.clear();
+		p_textData->clear();
 		return;
 	}
 
@@ -67,7 +67,7 @@ void RequirementFile_docx::__readTextDataFromZippedFormat(QString& p_textData)
 
 		ModelSngAnalysisErrors::instance().addError(e);
 
-		p_textData.clear();
+		p_textData->clear();
 		return;
 	}
 
@@ -83,17 +83,17 @@ void RequirementFile_docx::__readTextDataFromZippedFormat(QString& p_textData)
 
 		ModelSngAnalysisErrors::instance().addError(e);
 
-		p_textData.clear();
+		p_textData->clear();
 		return;
 	}
 
 	// Now all zip stuff is done, the real content can finally be read
-	p_textData.clear();
+	p_textData->clear();
 	int zipread;
 	memset(ZIP_BUFFER, '\0', ZIP_BUFFER_SIZE);
 	while ((zipread = zip_fread(zippeditem, ZIP_BUFFER, ZIP_BUFFER_SIZE), zipread) > 0)
 	{
-		p_textData.append(ZIP_BUFFER);
+		p_textData->append(ZIP_BUFFER);
 		memset(ZIP_BUFFER, '\0', ZIP_BUFFER_SIZE);
 	}
 	zip_fclose(zippeditem);
@@ -106,7 +106,7 @@ void RequirementFile_docx::parseFile()
 {
 	// Read raw data from the document and store it into text_content
 	QString* text_content = new QString();
-	__readTextDataFromZippedFormat(*text_content);
+	__readTextDataFromZippedFormat(text_content);
 	if (text_content->isEmpty())
 	{
 		delete(text_content) ;
@@ -128,9 +128,11 @@ void RequirementFile_docx::parseFile()
 		ModelSngAnalysisErrors::instance().addError(e);
 	}
 
-	QDomElement textRoot = mainDoc->documentElement().firstChildElement(DOCX_XML_BODY_NODE);
-	if (textRoot.isNull())
+	QDomElement* textRoot = new QDomElement() ;
+	*textRoot = mainDoc->documentElement().firstChildElement(DOCX_XML_BODY_NODE);
+	if (textRoot->isNull())
 	{
+		delete (textRoot) ;
 		delete (text_content) ;
 		delete (mainDoc) ;
 		return ;
@@ -139,7 +141,7 @@ void RequirementFile_docx::parseFile()
 	// Now we can walk through every paragraph and check for requirement stuff in it
 	QString current_req = "";
 	bool isCurrentReqAcceptable = false;  // just to avoid parsing parts of file if the current requirement isn't correct (eg already defined)
-	QDomElement elt = textRoot.firstChildElement(DOCX_XML_PARAGRAPH_NODE);
+	QDomElement elt = textRoot->firstChildElement(DOCX_XML_PARAGRAPH_NODE);
 	for (; !elt.isNull(); elt = elt.nextSiblingElement(DOCX_XML_PARAGRAPH_NODE))
 	{
 		qDebug() << "RequirementFile_docx::parseFile looking for data ..." ;
@@ -170,6 +172,7 @@ void RequirementFile_docx::parseFile()
 		}
 	}
 
+	delete (textRoot) ;
 	delete(mainDoc) ;
 	delete(text_content) ;
 }

@@ -43,7 +43,7 @@ private:
 	 * management. This method extracts the file defined by its path and read the "word/document.xml"
 	 * \param[out] p_textData contains the content of "word/document.xml"
 	 */
-	void __readTextDataFromZippedFormat(QString& p_textData);
+	void __readTextDataFromZippedFormat(QString* p_textData);
 };
 
 #endif /* REQUIREMENTFILEDOCX_H_ */
