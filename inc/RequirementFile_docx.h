@@ -8,14 +8,17 @@
 #ifndef REQUIREMENTFILEDOCX_H_
 #define REQUIREMENTFILEDOCX_H_
 
-#include "RequirementFileAbstract.h"
+#include "RequirementFileAbstractZipped.h"
 
 /*!
  * \class RequirementFile_docx
  * \brief Implements the RequirementFileAbstract interface for MS Word docx format
+ *
+ * the unzipping phase of the file reading is taken into account by RequirementFileAbstractZipped.
  */
-class RequirementFile_docx : public RequirementFileAbstract
+class RequirementFile_docx : public RequirementFileAbstractZipped
 {
+
 public:
 
 	/*!
@@ -34,16 +37,6 @@ public:
 	 */
 	void parseFile();
 
-private:
-
-	/*!
-	 * \brief unzip a docx file to read its content
-	 *
-	 * A docx file is basically a zip and only one XML file in this zip is interesting for requirement
-	 * management. This method extracts the file defined by its path and read the "word/document.xml"
-	 * \param[out] p_textData contains the content of "word/document.xml"
-	 */
-	void __readTextDataFromZippedFormat(QString* p_textData);
 };
 
 #endif /* REQUIREMENTFILEDOCX_H_ */

@@ -10,13 +10,15 @@
 
 #include <QDomElement>
 
-#include "RequirementFileAbstract.h"
+#include "RequirementFileAbstractZipped.h"
 
 /*!
  * \class RequirementFile_odt
  * \brief Implements the RequirementFileAbstract interface for OpenDocument format (typically LibreOffice)
+ *
+ * the unzipping phase of the file reading is taken into account by RequirementFileAbstractZipped.
  */
-class RequirementFile_odt : public RequirementFileAbstract
+class RequirementFile_odt : public RequirementFileAbstractZipped
 {
 
 public:
@@ -38,15 +40,6 @@ public:
 	void parseFile();
 
 private:
-
-	/*!
-	 * \brief unzip an odt file to read its content
-	 *
-	 * An odt file is basically a zip and only one XML file in this zip is interesting for requirement
-	 * management. This method extracts the file defined by its path and read the "content.xml"
-	 * \param[out] p_textData contains the content of "content.xml"
-	 */
-	void __readTextDataFromZippedFormat(QString& p_textData);
 
 	/*!
 	 * \brief look for the node «text» under which the whole document is contained

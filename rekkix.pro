@@ -90,7 +90,8 @@ HEADERS += ./inc/AnalysisError.h \
            ./inc/RequirementFile_odt.h \ 
            ./inc/RequirementFile_pdf.h \ 
            ./inc/RequirementFile_txt.h \
-           ./inc/RequirementFileAbstract.h 
+           ./inc/RequirementFileAbstract.h \
+           ./inc/RequirementFileAbstractZipped.h 
 
 # sources
 SOURCES += ./srcxx/AnalysisError.cpp \
@@ -112,6 +113,7 @@ SOURCES += ./srcxx/AnalysisError.cpp \
            ./srcxx/RequirementFile_odt.cpp \
            ./srcxx/RequirementFile_pdf.cpp \
            ./srcxx/RequirementFile_txt.cpp \
-           ./srcxx/RequirementFileAbstract.cpp
+           ./srcxx/RequirementFileAbstract.cpp \
+           ./srcxx/RequirementFileAbstractZipped.cpp
            
 
