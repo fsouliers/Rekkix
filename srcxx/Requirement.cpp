@@ -88,6 +88,8 @@ void Requirement::computeConsistency()
 
 	if (!__isConsistencyAlreadyCalculated)
 	{
+		qDebug() << "Requirement::computeConsistency Premier calcul pour " << this->getId() ;
+
 		// 1. Check for requirement file
 		if (!__location)
 		{
@@ -132,18 +134,20 @@ void Requirement::computeConsistency()
 		{
 			// 4. Check for inconsistent requirements in composing requirements ; if there is a loop in composing
 			// requirements --> nothing to test, we already know it is invalid
-			errCmp = hasInvalidComposingReqs() ;
+			QString invalidReqs = "";
+			errCmp = hasInvalidComposingReqs(invalidReqs) ;
 			if (errCmp)
 			{
 				AnalysisError e(AnalysisError::ERROR,
 				                AnalysisError::CONSISTENCY,
 				                __expectedBy,
-				                QObject::trUtf8("%1 est composée d'au moins une exigence invalide").arg(__id));
+				                QObject::trUtf8("%1 est composée d'exigences invalides : %2").arg(__id).arg(invalidReqs));
 
 				ModelSngAnalysisErrors::instance().addError(e);
 			}
 		}
 
+		qDebug() << "Requirement::computeConsistency [" << this->getId() << "] errLoc<" << errLoc << "> errDwnLoop<" << errDwnLoop << "> errCmpLoop<" << errCmpLoop << "> errCmp<" << errCmp << ">" ;
 		__isConsistent = !(errLoc || errDwnLoop || errCmpLoop || errCmp) ;
 		__isConsistencyAlreadyCalculated = true ;
 	}
@@ -250,15 +254,30 @@ bool Requirement::hasLoopInComposingReqs(QString& cmpChain)
 	return(retVal) ;
 }
 
-bool Requirement::hasInvalidComposingReqs()
+bool Requirement::hasInvalidComposingReqs(QString& p_invalidReqs)
 {
-	bool retVal = false ;
+	bool isGlobalInvalid = false ;
 
 	foreach(Requirement* r, __composingReqs)
 	{
 		r->computeConsistency() ;
-		retVal |= r->isConsistent() ;
+
+		bool isInvalid = !r->isConsistent() ;
+		if (isInvalid)
+		{
+			qDebug() << "Requirement::hasInvalidComposingReqs --> " << this->getId() << " est composée de " << r->getId() << " qui est invalide" ;
+			if (p_invalidReqs.isEmpty())
+			{
+				p_invalidReqs = r->getId() ;
+			}
+			else
+			{
+				p_invalidReqs += ", " + r->getId() ;
+			}
+		}
+
+		isGlobalInvalid = (isGlobalInvalid || isInvalid) ;
 	}
 
-	return(retVal) ;
+	return(isGlobalInvalid) ;
 }

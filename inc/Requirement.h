@@ -262,7 +262,7 @@ public:
 	 * - true if the requirement is consistent
 	 * - false else
 	 */
-	bool isConsistent()
+	bool isConsistent() const
 	{
 		return(__isConsistent) ;
 	}
@@ -290,11 +290,12 @@ public:
 
 	/*!
 	 * \brief Look for invalid requirements in the composing chain of requirements
+	 * \param[inout] p_invalidReqs   String representing the invalid requirements found in the current one
 	 * \return
 	 * - true if there is at least one invalid composing requirement
 	 * - false else
 	 */
-	bool hasInvalidComposingReqs() ;
+	bool hasInvalidComposingReqs(QString& p_invalidReqs) ;
 
 private:
 	/*!
