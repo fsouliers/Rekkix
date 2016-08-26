@@ -8,13 +8,13 @@
 #ifndef REQUIREMENTFILETXT_H_
 #define REQUIREMENTFILETXT_H_
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class RequirementFile_txt
- * \brief Implements the IRequirementFile interface for plain text files
+ * \brief Implements the RequirementFileAbstract interface for plain text files
  */
-class RequirementFile_txt : public IRequirementFile
+class RequirementFile_txt : public RequirementFileAbstract
 {
 public:
 

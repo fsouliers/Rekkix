@@ -1,12 +1,12 @@
 /*!
- * \file IRequirementFile.h
- * \brief Definition of the abstract class IRequirementFile
+ * \file RequirementFileAbstract.h
+ * \brief Definition of the abstract class RequirementFileAbstract
  * \date 2016-08-15
  * \author f.souliers
  */
 
-#ifndef IREQUIREMENTFILE_H_
-#define IREQUIREMENTFILE_H_
+#ifndef REQUIREMENTFILEABSTRACT_H_
+#define REQUIREMENTFILEABSTRACT_H_
 
 #include <QVector>
 #include <QRegularExpression>
@@ -16,7 +16,7 @@
 #include "Requirement.h"
 
 /*!
- * \class IRequirementFile
+ * \class RequirementFileAbstract
  * \brief Abstract class used to define the common behaviors and attributes of every document containing
  *        requirements.
  *
@@ -37,7 +37,7 @@
  * part of the file and will start interpreting a new requirement when the requirement regex
  * (see ModelConfiguration::REQFILE_ATTR_REQREGEX) matches again.
  */
-class IRequirementFile
+class RequirementFileAbstract
 {
 public:
 	/*!
@@ -47,12 +47,12 @@ public:
 	 * This constructor also initialize the patterns for all the regular expressions needed in file parsing
 	 * step.
 	 */
-	IRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
+	RequirementFileAbstract(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
 
 	/*!
 	 * \brief Destructor of the class, does nothing special.
 	 */
-	virtual ~IRequirementFile();
+	virtual ~RequirementFileAbstract();
 
 	/*!
 	 * \brief method called by Rekkix internals to parse a file containing requirements
@@ -150,7 +150,7 @@ public:
 	 * \param[in] p_fileId  Unique ID of the file
 	 * \param[in] p_file    Pointer to the corresponding requirement file object
 	 */
-	void addUpstreamDocument(const QString& p_fileId, IRequirementFile* p_file);
+	void addUpstreamDocument(const QString& p_fileId, RequirementFileAbstract* p_file);
 
 	/*!
 	 * \brief Getter for the upstream documents of this file
@@ -159,7 +159,7 @@ public:
 	 * - the key of the map is the unique ID of the file
 	 * - the value is the pointer to the corresponding file object
 	 */
-	QMap<QString, IRequirementFile*> getUpstreamDocuments() const
+	QMap<QString, RequirementFileAbstract*> getUpstreamDocuments() const
 	{
 		return (_upstreamDocs);
 	}
@@ -170,7 +170,7 @@ public:
 	 * \param[in] p_fileId  Unique ID of the file
 	 * \param[in] p_file    Pointer to the corresponding requirement file object
 	 */
-	void addDownstreamDocument(const QString& p_fileId, IRequirementFile* p_file);
+	void addDownstreamDocument(const QString& p_fileId, RequirementFileAbstract* p_file);
 
 	/*!
 	 * \brief Getter for the downstream documents of this file
@@ -179,7 +179,7 @@ public:
 	 * - the key of the map is the unique ID of the file
 	 * - the value is the pointer to the corresponding file object
 	 */
-	QMap<QString, IRequirementFile*> getDownstreamDocuments() const
+	QMap<QString, RequirementFileAbstract*> getDownstreamDocuments() const
 	{
 		return (_downstreamDocs);
 	}
@@ -260,7 +260,7 @@ protected:
 	 * - key : file id as defined in the configuration
 	 * - value : pointer to the requirement file
 	 */
-	QMap<QString, IRequirementFile*> _upstreamDocs;
+	QMap<QString, RequirementFileAbstract*> _upstreamDocs;
 
 	/*!
 	 * \brief Map of downstream files.
@@ -270,7 +270,7 @@ protected:
 	 * - key : file id as defined in the configuration
 	 * - value : pointer to the requirement file
 	 */
-	QMap<QString, IRequirementFile*> _downstreamDocs;
+	QMap<QString, RequirementFileAbstract*> _downstreamDocs;
 
 	/*!
 	 * requirements read after parsing (automatically set by the abstract layer)
@@ -331,8 +331,8 @@ protected:
 
 /*!
  * \typedef IRequirementFilePtr
- * \brief Just to make the code easier to type when a pointer to IRequirementFile is required
+ * \brief Just to make the code easier to type when a pointer to RequirementFileAbstract is required
  */
-typedef IRequirementFile* IRequirementFilePtr;
+typedef RequirementFileAbstract* IRequirementFilePtr;
 
-#endif /* IREQUIREMENTFILE_H_ */
+#endif /* REQUIREMENTFILEABSTRACT_H_ */

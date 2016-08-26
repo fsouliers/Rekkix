@@ -8,9 +8,10 @@
 #ifndef MODELCOMPOSITEREQS_H_
 #define MODELCOMPOSITEREQS_H_
 
+
 #include <QAbstractItemModel>
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class ModelCompositeReqs

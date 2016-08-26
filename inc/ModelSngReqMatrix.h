@@ -8,12 +8,13 @@
 #ifndef MODELSNGREQMATRIX_H_
 #define MODELSNGREQMATRIX_H_
 
+
 #include <QAbstractItemModel>
 #include <QString>
 #include <QMap>
 
 #include "Requirement.h"
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class ModelSngReqMatrix

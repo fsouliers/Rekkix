@@ -10,7 +10,8 @@
 
 #include <QAbstractItemModel>
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
+
 
 /*!
  * \class ModelStreamDocuments
@@ -96,7 +97,7 @@ public:
 	 * \brief add a document set (upstream or downstream) to the current one to be displayed
 	 * \param[in] p_data  document set to be displayed
 	 */
-	void addDocumentSet(const QMap<QString, IRequirementFile*>& p_data);
+	void addDocumentSet(const QMap<QString, RequirementFileAbstract*>& p_data);
 
 	/*!
 	 * \brief empty __streamDocumentSet, mainly because new ones are going to be displayed
@@ -120,7 +121,7 @@ private:
 	 * Map of the requirement files representing the upstream or the downstream of
 	 * one or more files
 	 */
-	QMap<QString, IRequirementFile*> __streamDocumentSet;
+	QMap<QString, RequirementFileAbstract*> __streamDocumentSet;
 };
 
 #endif /* MODELSTREAMDOCUMENTS_H_ */

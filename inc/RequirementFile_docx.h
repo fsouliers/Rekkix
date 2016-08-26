@@ -8,13 +8,13 @@
 #ifndef REQUIREMENTFILEDOCX_H_
 #define REQUIREMENTFILEDOCX_H_
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class RequirementFile_docx
- * \brief Implements the IRequirementFile interface for MS Word docx format
+ * \brief Implements the RequirementFileAbstract interface for MS Word docx format
  */
-class RequirementFile_docx : public IRequirementFile
+class RequirementFile_docx : public RequirementFileAbstract
 {
 public:
 

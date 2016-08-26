@@ -77,9 +77,9 @@ QModelIndex ModelStreamDocuments::parent(const QModelIndex & /*index*/) const
 	return (QModelIndex());
 }
 
-void ModelStreamDocuments::addDocumentSet(const QMap<QString, IRequirementFile*>& p_data)
+void ModelStreamDocuments::addDocumentSet(const QMap<QString, RequirementFileAbstract*>& p_data)
 {
-	QMap<QString, IRequirementFile*>::const_iterator it;
+	QMap<QString, RequirementFileAbstract*>::const_iterator it;
 
 	for (it = p_data.constBegin(); it != p_data.constEnd() ; ++it)
 	{

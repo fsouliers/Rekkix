@@ -73,7 +73,6 @@ FORMS += ./ui/Rekkix.ui
 
 # headers
 HEADERS += ./inc/AnalysisError.h \
-           ./inc/IRequirementFile.h \
            ./inc/FactoryReportBaseString.h \
            ./inc/FactoryRequirementFile.h \
            ./inc/ModelCompositeReqs.h \
@@ -90,11 +89,11 @@ HEADERS += ./inc/AnalysisError.h \
            ./inc/RequirementFile_docx.h \ 
            ./inc/RequirementFile_odt.h \ 
            ./inc/RequirementFile_pdf.h \ 
-           ./inc/RequirementFile_txt.h
+           ./inc/RequirementFile_txt.h \
+           ./inc/RequirementFileAbstract.h 
 
 # sources
 SOURCES += ./srcxx/AnalysisError.cpp \
-           ./srcxx/IRequirementFile.cpp \
            ./srcxx/FactoryReportBaseString.cpp \
            ./srcxx/FactoryRequirementFile.cpp \
            ./srcxx/main.cpp \
@@ -112,6 +111,7 @@ SOURCES += ./srcxx/AnalysisError.cpp \
            ./srcxx/RequirementFile_docx.cpp \
            ./srcxx/RequirementFile_odt.cpp \
            ./srcxx/RequirementFile_pdf.cpp \
-           ./srcxx/RequirementFile_txt.cpp 
+           ./srcxx/RequirementFile_txt.cpp \
+           ./srcxx/RequirementFileAbstract.cpp
            
 

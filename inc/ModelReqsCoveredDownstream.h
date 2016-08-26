@@ -10,7 +10,8 @@
 
 #include <QAbstractItemModel>
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
+
 
 /*!
  * \class ModelReqsCoveredDownstream

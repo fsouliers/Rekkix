@@ -26,7 +26,7 @@ static const QString DOCX_XML_BODY_NODE = "body";  //!< MS Word specific XML tag
 static const QString DOCX_XML_PARAGRAPH_NODE = "p";  //!< MS Word specific XML tag for paragraph
 
 RequirementFile_docx::RequirementFile_docx(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
-		: IRequirementFile(p_cnfFile)
+		: RequirementFileAbstract(p_cnfFile)
 {
 }
 

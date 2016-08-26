@@ -8,13 +8,13 @@
 #ifndef REQUIREMENTFILEPDF_H_
 #define REQUIREMENTFILEPDF_H_
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class RequirementFile_pdf
- * \brief Implements the IRequirementFile interface for pdf files
+ * \brief Implements the RequirementFileAbstract interface for pdf files
  */
-class RequirementFile_pdf : public IRequirementFile
+class RequirementFile_pdf : public RequirementFileAbstract
 {
 public:
 

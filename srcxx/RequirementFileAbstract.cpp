@@ -1,17 +1,18 @@
 /*!
- * \file IRequirementFile.cpp
- * \brief Implementation of the class IRequirementFile
+ * \file RequirementFileAbstract.cpp
+ * \brief Implementation of the class RequirementFileAbstract
  * \date 2016-07-15
  * \author f.souliers
  */
 
+#include <RequirementFileAbstract.h>
+
 #include <QDebug>
 
-#include "IRequirementFile.h"
 #include "ModelSngReqMatrix.h"
 #include "ModelSngAnalysisErrors.h"
 
-IRequirementFile::IRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
+RequirementFileAbstract::RequirementFileAbstract(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: _avgCoverage(0.0), _cnfFile(p_cnfFile)
 {
 	// regex validy is verified while reading the configuration file, see ModelConfiguration
@@ -37,12 +38,12 @@ IRequirementFile::IRequirementFile(const ModelConfiguration::CnfFileAttributesMa
 	}
 }
 
-IRequirementFile::~IRequirementFile()
+RequirementFileAbstract::~RequirementFileAbstract()
 {
 
 }
 
-void IRequirementFile::computeCoverage()
+void RequirementFileAbstract::computeCoverage()
 {
 	QVector<Requirement*>::iterator it ;
 	double sum = 0.0 ;
@@ -70,7 +71,7 @@ void IRequirementFile::computeCoverage()
 	}
 }
 
-void IRequirementFile::addUpstreamDocument(const QString& p_fileId, IRequirementFile* p_file)
+void RequirementFileAbstract::addUpstreamDocument(const QString& p_fileId, RequirementFileAbstract* p_file)
 {
 	qDebug() << "IRequirementFile::addUpstreamDocument " << _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] << " : trying to add " << p_fileId;
 
@@ -81,7 +82,7 @@ void IRequirementFile::addUpstreamDocument(const QString& p_fileId, IRequirement
 	}
 }
 
-void IRequirementFile::addDownstreamDocument(const QString& p_fileId, IRequirementFile* p_file)
+void RequirementFileAbstract::addDownstreamDocument(const QString& p_fileId, RequirementFileAbstract* p_file)
 {
 	qDebug() << "IRequirementFile::addDownstreamDocument " << _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] << " : trying to add " << p_fileId;
 
@@ -92,7 +93,7 @@ void IRequirementFile::addDownstreamDocument(const QString& p_fileId, IRequireme
 	}
 }
 
-bool IRequirementFile::_hasStoredAnyRequirementDefinition(const QString& p_text,
+bool RequirementFileAbstract::_hasStoredAnyRequirementDefinition(const QString& p_text,
                                                  QString& p_reqfound,
                                                  bool& p_reqAcceptable)
 {
@@ -120,7 +121,7 @@ bool IRequirementFile::_hasStoredAnyRequirementDefinition(const QString& p_text,
 	}
 }
 
-bool IRequirementFile::_hasStoredAnyExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId)
+bool RequirementFileAbstract::_hasStoredAnyExpectedCompositeRequirements(const QString& p_text, const QString& p_parentReqId)
 {
 	QRegularExpressionMatch cmp_m = _regexCmp.match(p_text);
 	if (cmp_m.hasMatch())
@@ -153,7 +154,7 @@ bool IRequirementFile::_hasStoredAnyExpectedCompositeRequirements(const QString&
 	}
 }
 
-bool IRequirementFile::_hasStoredAnyExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId)
+bool RequirementFileAbstract::_hasStoredAnyExpectedUpstreamRequirements(const QString& p_text, const QString& p_currentReqId)
 {
 	QRegularExpressionMatch cov_m = _regexCov.match(p_text);
 	if (cov_m.hasMatch())
@@ -188,7 +189,7 @@ bool IRequirementFile::_hasStoredAnyExpectedUpstreamRequirements(const QString& 
 	}
 }
 
-bool IRequirementFile::_mustStopParsing(const QString& p_text)
+bool RequirementFileAbstract::_mustStopParsing(const QString& p_text)
 {
 	QRegularExpressionMatch sm_m = _regexStopAfter.match(p_text);
 	if (sm_m.hasMatch())

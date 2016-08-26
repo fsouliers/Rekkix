@@ -28,7 +28,7 @@ static const QString ODT_XML_PARAGRAPH_NODE = "p";  //!< OpenDocument specific X
 static const QString ODT_XML_ANNOTATION_NODE = "annotation";  //!< OpenDocument specific XML tag for annotation (side note inside a paragraph)
 
 RequirementFile_odt::RequirementFile_odt(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
-		: IRequirementFile(p_cnfFile)
+		: RequirementFileAbstract(p_cnfFile)
 {
 }
 

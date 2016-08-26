@@ -19,7 +19,7 @@
 
 
 RequirementFile_pdf::RequirementFile_pdf(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
-		: IRequirementFile(p_cnfFile)
+		: RequirementFileAbstract(p_cnfFile)
 {
 }
 

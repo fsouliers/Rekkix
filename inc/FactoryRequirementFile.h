@@ -8,11 +8,11 @@
 #ifndef FACTORYREQUIREMENTFILE_H_
 #define FACTORYREQUIREMENTFILE_H_
 
-#include "IRequirementFile.h"
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class FactoryRequirementFile
- * \brief Simple and small factory used to instantiate the adequate implementation of IRequirementFile
+ * \brief Simple and small factory used to instantiate the adequate implementation of RequirementFileAbstract
  *
  * Once Rekkix has parsed the configuration file, it is able to instantiate the adequate file parsers
  * for each configured file according to its file extension.
@@ -21,7 +21,7 @@
  * - docx : parse the file as a MS Word file
  * - odt : parse the file as a LibreOffice text file
  * - txt : parse the file as a plain text file
- * - pdf : parse the file as a pdf file --> TODO : not implemented yet
+ * - pdf : parse the file as a pdf file
  */
 class FactoryRequirementFile
 {

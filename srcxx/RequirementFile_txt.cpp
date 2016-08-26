@@ -16,7 +16,7 @@
 
 
 RequirementFile_txt::RequirementFile_txt(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
-		: IRequirementFile(p_cnfFile)
+		: RequirementFileAbstract(p_cnfFile)
 {
 }
 

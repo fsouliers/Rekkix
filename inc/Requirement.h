@@ -11,7 +11,7 @@
 #include <QString>
 #include <QVector>
 
-class IRequirementFile;
+class RequirementFileAbstract;
 
 /*!
  * \class Requirement
@@ -92,7 +92,7 @@ public:
 	 * \return The pointer to the file containing this requirement or NULL if the requirement is
 	 *         still not defined
 	 */
-	IRequirementFile* getLocation()
+	RequirementFileAbstract* getLocation()
 	{
 		return (__location);
 	}
@@ -101,7 +101,7 @@ public:
 	 * \brief Setter for the location
 	 * \param[in] p pointer to a requirement file that has to be stored as the location of the requirement
 	 */
-	void setLocation(IRequirementFile* p)
+	void setLocation(RequirementFileAbstract* p)
 	{
 		__location = p;
 	}
@@ -320,7 +320,7 @@ private:
 	 * mentioned as reference (covering, composing or covered) wich has never been found parsing
 	 * the configured files
 	 */
-	IRequirementFile* __location;
+	RequirementFileAbstract* __location;
 
 	/*!
 	 * When the requirement is only Expected, this attributes keeps the value of the file id expecting it

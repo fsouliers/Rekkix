@@ -5,11 +5,12 @@
  * \author f.souliers
  */
 
+#include <RequirementFileAbstract.h>
+
 #include <QDebug>
 #include <limits>
 
 #include "Requirement.h"
-#include "IRequirementFile.h"
 #include "AnalysisError.h"
 #include "ModelSngAnalysisErrors.h"
 

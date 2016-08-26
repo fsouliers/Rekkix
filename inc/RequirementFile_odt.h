@@ -8,15 +8,15 @@
 #ifndef REQUIREMENTFILEODT_H_
 #define REQUIREMENTFILEODT_H_
 
-#include "IRequirementFile.h"
-
 #include <QDomElement>
+
+#include "RequirementFileAbstract.h"
 
 /*!
  * \class RequirementFile_odt
- * \brief Implements the IRequirementFile interface for OpenDocument format (typically LibreOffice)
+ * \brief Implements the RequirementFileAbstract interface for OpenDocument format (typically LibreOffice)
  */
-class RequirementFile_odt : public IRequirementFile
+class RequirementFile_odt : public RequirementFileAbstract
 {
 
 public:
