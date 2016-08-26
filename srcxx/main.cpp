@@ -43,7 +43,9 @@ int main(int argc, char *argv[])
 		// no doubt, we are running in GUI mode
 		oRekkix = new Rekkix(&app);
 		oRekkix->show();
-		return (app.exec());
+		int i = app.exec() ;
+		delete(oRekkix) ;
+		return (i);
 	}
 	else if (argc == 2)
 	{
@@ -51,7 +53,9 @@ int main(int argc, char *argv[])
 		oRekkix = new Rekkix(&app);
 		oRekkix->loadFileAndInitGui(argv[1]) ;
 		oRekkix->show();
-		return (app.exec());
+		int i = app.exec() ;
+		delete(oRekkix) ;
+		return (i);
 	}
 	else if (argc == 3)
 	{
@@ -59,7 +63,9 @@ int main(int argc, char *argv[])
 		{
 			// running in batch mode --> no gui
 			oRekkix = new Rekkix(&app, false);
-			return (oRekkix->loadFileAndRunBatch(argv[2]));
+			int i = oRekkix->loadFileAndRunBatch(argv[2]) ;
+			delete(oRekkix) ;
+			return (i);
 		}
 		else
 		{
