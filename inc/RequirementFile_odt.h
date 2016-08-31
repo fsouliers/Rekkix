@@ -20,6 +20,7 @@
  */
 class RequirementFile_odt : public RequirementFileAbstractZipped
 {
+	Q_OBJECT
 
 public:
 

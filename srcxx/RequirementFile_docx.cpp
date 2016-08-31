@@ -80,11 +80,8 @@ void RequirementFile_docx::parseFile()
 	QDomElement elt = textRoot->firstChildElement(DOCX_XML_PARAGRAPH_NODE);
 	for (; !elt.isNull(); elt = elt.nextSiblingElement(DOCX_XML_PARAGRAPH_NODE))
 	{
-		qDebug() << "RequirementFile_docx::parseFile looking for data ..." ;
 		QString data = elt.text();
 		if (data.isEmpty()) continue ;
-
-		qDebug() << "RequirementFile_docx::parseFile DATA HAVE BEEN EXTRACTED :" << data ;
 
 		// If the «requirement definition» regex matches, then nothing more to do with this paragraph
 		if (_hasStoredAnyRequirementDefinition(data, current_req, isCurrentReqAcceptable)) continue ;

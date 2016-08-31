@@ -8,6 +8,7 @@
 #ifndef REQUIREMENTFILEABSTRACT_H_
 #define REQUIREMENTFILEABSTRACT_H_
 
+#include <QThread>
 #include <QVector>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
@@ -37,8 +38,10 @@
  * part of the file and will start interpreting a new requirement when the requirement regex
  * (see ModelConfiguration::REQFILE_ATTR_REQREGEX) matches again.
  */
-class RequirementFileAbstract
+class RequirementFileAbstract : public QThread
 {
+	Q_OBJECT
+
 public:
 	/*!
 	 * \brief Constructor for the non pure abstract part of the class
@@ -63,6 +66,18 @@ public:
 	 * \see RequirementFile_docx for examples of implementation of this method
 	 */
 	virtual void parseFile() = 0;
+
+	/*!
+	 * \brief method called to run the parsing into a dedicated thread.
+	 *
+	 * It only calls parseFile that must be defined by each subclass and send a signal to inform that the
+	 * parsing of the file is terminated
+	 */
+	void run() Q_DECL_OVERRIDE
+	{
+		parseFile() ;
+		emit parsingFinished() ;
+	}
 
 	/*!
 	 * \brief Test if a CMP regex has been defined
@@ -118,8 +133,6 @@ public:
 	 * \return
 	 * - true if, according to the configuration file, this document must have downstream documents
 	 * - false else. In this case, it means that not any requirement of this document has to be covered
-	 *
-	 * TODO confirm wether it is an error or not to have covered requirements in a document that shouldn't have downstream document
 	 */
 	bool mustHaveDownstreamDocuments() const
 	{
@@ -131,8 +144,6 @@ public:
 	 * \return
 	 * - true if, according to the configuration file, this document must have upstream documents
 	 * - false else. In this case, it means that not any requirement of this document is covering another one
-	 *
-	 * TODO confirm the presence of the consistency check
 	 */
 	bool mustHaveUpstreamDocuments() const
 	{
@@ -217,6 +228,31 @@ public:
 		return (_requirements);
 	}
 
+	/*!
+	 * \brief setter for the _threadLaunched flag
+	 */
+	void setThreadActuallyLaunched(bool p_v = true)
+	{
+		_threadLaunched = p_v ;
+	}
+
+	/*!
+	 * \brief Getter for the _threadLaunched flag
+	 * \return
+	 * - true if the thread has been actually started (so wait method is meaningfull)
+	 * - false if the thread has never been started
+	 */
+	bool isThreadActuallyLaunched()
+	{
+		return(_threadLaunched) ;
+	}
+
+signals:
+	/*!
+	 * \brief Signal emitted when the thread has finished to parse its associated file.
+	 */
+	void parsingFinished() ;
+
 protected:
 	/*!
 	 * \brief Average coverage ... _sumOfCov / _nbReqs ... at the end of coverage computing
@@ -273,9 +309,16 @@ protected:
 	QMap<QString, RequirementFileAbstract*> _downstreamDocs;
 
 	/*!
-	 * requirements read after parsing (automatically set by the abstract layer)
+	 * \brief requirements read after parsing (automatically set by the abstract layer)
 	 */
 	QVector<Requirement*> _requirements;
+
+	/*!
+	 * \brief flag used to verify that the thread has been actually started
+	 *
+	 * When this flag is true, the file has been recognized as actually started.
+	 */
+	bool _threadLaunched ;
 
 	/*!
 	 * \brief Checks if the text matches the req_regex
@@ -330,9 +373,9 @@ protected:
 };
 
 /*!
- * \typedef IRequirementFilePtr
+ * \typedef RequirementFileAbstractPtr
  * \brief Just to make the code easier to type when a pointer to RequirementFileAbstract is required
  */
-typedef RequirementFileAbstract* IRequirementFilePtr;
+typedef RequirementFileAbstract* RequirementFileAbstractPtr;
 
 #endif /* REQUIREMENTFILEABSTRACT_H_ */

@@ -110,7 +110,6 @@ void RequirementFile_odt::parseFile()
 	QDomElement elt = textRoot->firstChildElement(ODT_XML_PARAGRAPH_NODE);
 	for (; !elt.isNull(); elt = elt.nextSiblingElement(ODT_XML_PARAGRAPH_NODE))
 	{
-		qDebug() << "RequirementFile_odt::parseFile looking for data ..." ;
 		QDomElement eltAnnotation = elt.firstChildElement(ODT_XML_ANNOTATION_NODE) ;
 		QString data = elt.text() ;
 
@@ -120,8 +119,6 @@ void RequirementFile_odt::parseFile()
 
 		// If there is no data ... no need to look for anything
 		if (data.isEmpty()) continue ;
-
-		qDebug() << "RequirementFile_odt::parseFile DATA HAVE BEEN EXTRACTED :" << data ;
 
 		// If the «requirement definition» regex matches, then nothing more to do with this paragraph
 		if (_hasStoredAnyRequirementDefinition(data, current_req, isCurrentReqAcceptable)) continue ;

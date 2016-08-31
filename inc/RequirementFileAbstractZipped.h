@@ -18,6 +18,7 @@
  */
 class RequirementFileAbstractZipped : public RequirementFileAbstract
 {
+	Q_OBJECT
 
 public:
 
@@ -48,6 +49,11 @@ protected:
 	 * \brief Path of the file located into the zipped that must be parsed
 	 */
 	QString _documentFileName ;
+
+	/*!
+	 * \brief buffer used to read the data in a thread-safe manner
+	 */
+	char* _zippedDataBuffer ;
 };
 
 #endif /* REQUIREMENTFILEABSTRACTZIPPED_H_ */

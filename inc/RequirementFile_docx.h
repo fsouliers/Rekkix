@@ -18,6 +18,7 @@
  */
 class RequirementFile_docx : public RequirementFileAbstractZipped
 {
+	Q_OBJECT
 
 public:
 

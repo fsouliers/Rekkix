@@ -89,8 +89,6 @@ void Requirement::computeConsistency()
 
 	if (!__isConsistencyAlreadyCalculated)
 	{
-		qDebug() << "Requirement::computeConsistency Premier calcul pour " << this->getId() ;
-
 		// 1. Check for requirement file
 		if (!__location)
 		{
@@ -148,7 +146,6 @@ void Requirement::computeConsistency()
 			}
 		}
 
-		qDebug() << "Requirement::computeConsistency [" << this->getId() << "] errLoc<" << errLoc << "> errDwnLoop<" << errDwnLoop << "> errCmpLoop<" << errCmpLoop << "> errCmp<" << errCmp << ">" ;
 		__isConsistent = !(errLoc || errDwnLoop || errCmpLoop || errCmp) ;
 		__isConsistencyAlreadyCalculated = true ;
 	}

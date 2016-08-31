@@ -7,6 +7,7 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QMutexLocker>
 
 #include "ModelSngAnalysisErrors.h"
 #include "FactoryReportBaseString.h"
@@ -108,6 +109,8 @@ QModelIndex ModelSngAnalysisErrors::parent(const QModelIndex & /*index*/) const
 
 void ModelSngAnalysisErrors::addError(const AnalysisError& e)
 {
+	QMutexLocker l(&__addErrorMutex) ; // avoid simultaneous writing
+
 	__errors.append(e);
 
 	QString loc = e.getLocation();
@@ -123,6 +126,8 @@ void ModelSngAnalysisErrors::addError(const AnalysisError& e)
 
 void ModelSngAnalysisErrors::addErrors(const QVector<AnalysisError>& ve)
 {
+	QMutexLocker l(&__addErrorMutex) ; // avoid simultaneous writing
+
 	__errors.append(ve);
 
 	foreach(AnalysisError e, ve)

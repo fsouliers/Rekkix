@@ -10,6 +10,7 @@
 
 #include <QApplication>
 #include <QMainWindow>
+#include <QMutex>
 
 // Auto-generated ui headers
 #include "ui_Rekkix.h"
@@ -54,11 +55,8 @@ public slots :
 
 	/*!
 	 * \brief start the analysis with the loaded configuration file
-	 * \param[in] isBatchMode  If set to true, it means the slot hasn't been called from the gui but from
-	 *                         the batch mode running code. In such a case, do not interacts with the gui
-	 *                         (as it doesn't exist)
 	 */
-	void slt_startAnalysis(bool isBatchMode = false);
+	void slt_startAnalysis();
 
 	/*!
 	 * \brief this slot is called when a file is selected in the files coverage summary view
@@ -68,11 +66,8 @@ public slots :
 
 	/*!
 	 * \brief generate the report as specified in the loaded configuration file
-	 * \param[in] isBatchMode  If set to true, it means the slot hasn't been called from the gui but from
-	 *                         the batch mode running code. In such a case, do not interacts with the gui
-	 *                         (as it doesn't exist)
 	 */
-	void slt_generateReports(bool isBatchMode = false);
+	void slt_generateReports();
 
 	/*!
 	 * \brief load a configuration file (from gui or from command line) and initialize gui accordingly
@@ -89,6 +84,16 @@ public slots :
 	 */
 	int loadFileAndRunBatch(const char* p_filename);
 
+	/*!
+	 * \brief slot called when a requirement file finished its parsing.
+	 */
+	void slt_reqFileParsingOneMoreFileFinished() ;
+
+	/*!
+	 * \brief slot called when all of the requirement files have been parsed (the coverage computation can be performed)
+	 */
+	void slt_reqFileParsingAllFilesFinished() ;
+
 private:
 
 	QApplication * __app;  //!< Application running the window
@@ -100,6 +105,9 @@ private:
 	ModelReqsCoveredDownstream __downstreamCoverageModel; //!< model for downstream requirements
 	ModelCompositeReqs __compositeRequirementsModel; //!< model for composite requirements
 	ModelReqs __requirementsModel; //!< model for requirements of the selected file
+	bool __isBatchMode ; //!< is the application running in batch mode ? (ie without any GUI)
+	int __nbFiles ; //!< Number of files the analysis is going to take into account (calculated at the beginning of slt_analysis)
+	QMutex __fileParsingFinishedGuiUpdate ;  //!< Mutex used to protect the GUI update when file parsing is terminated
 
 	/*!
 	 * \brief When building a report, builds the string used for the summary of the report (list of files, errors, ...)

@@ -49,7 +49,6 @@ void RequirementFile_pdf::parseFile()
 	QString txtDoc ;
 	QStringList* lst = new QStringList() ;
 
-	qDebug() << "Nb pages : " << pdfDoc->pages() ;
 	for (int pgNum = 0 ; pgNum < pdfDoc->pages() ; ++pgNum)
 	{
 		txtDoc = "" ;
@@ -58,7 +57,6 @@ void RequirementFile_pdf::parseFile()
 		{
 			txtDoc += *c ;
 		}
-		qDebug() << "txtDoc lu :" << txtDoc ;
 
 		lst->append(txtDoc.split('\n')) ;
 	}

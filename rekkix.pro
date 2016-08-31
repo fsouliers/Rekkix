@@ -2,8 +2,8 @@
 # released under the terms of the GNU General Public License
 
 # Often changed parameters
-CONFIG += release
-VERSION = 0.2.0
+CONFIG += debug
+VERSION = 0.3.0
 
 # The project is an application and we should avoid generating several configuration
 TEMPLATE = app
@@ -73,6 +73,8 @@ FORMS += ./ui/Rekkix.ui
 
 # headers
 HEADERS += ./inc/AnalysisError.h \
+           ./inc/AnalysisSngStarterThread.h \
+           ./inc/AnalysisSngWaiterThread.h \
            ./inc/FactoryReportBaseString.h \
            ./inc/FactoryRequirementFile.h \
            ./inc/ModelCompositeReqs.h \
@@ -95,6 +97,8 @@ HEADERS += ./inc/AnalysisError.h \
 
 # sources
 SOURCES += ./srcxx/AnalysisError.cpp \
+           ./srcxx/AnalysisSngStarterThread.cpp \
+           ./srcxx/AnalysisSngWaiterThread.cpp \
            ./srcxx/FactoryReportBaseString.cpp \
            ./srcxx/FactoryRequirementFile.cpp \
            ./srcxx/main.cpp \

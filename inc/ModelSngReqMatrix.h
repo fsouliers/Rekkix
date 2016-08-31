@@ -12,6 +12,7 @@
 #include <QAbstractItemModel>
 #include <QString>
 #include <QMap>
+#include <QMutex>
 
 #include "Requirement.h"
 #include "RequirementFileAbstract.h"
@@ -51,6 +52,9 @@ public:
 	 *  A defined requirement is a requirement identified with the req_regex ; on the opposite, an
 	 *  expected requirement is a requirement created as it has been identified as a reference of another
 	 *  requirement (and maybe not yet defined).
+	 *
+	 *  This method is protected by __reqsByNameMutex and __reqsByFileIdMutex as it can be called by several
+	 *  threads.
 	 * \param[in] file_id   file id being parsed in for witch the method has been called
 	 * \param[in] p_r       requirement object to be added into the matrix
 	 * \return
@@ -61,6 +65,8 @@ public:
 
 	/*!
 	 * \brief Add an expected requirement as it has been defined as a subelement of another one
+	 *
+	 *  This method is protected by __reqsByNameMutex as it can be called by several threads.
 	 * \param[in] location    File id / requirement being parsed in for witch the method has been called
 	 * \param[in] p_parentId  The Id of the requirement composed of at least p_r
 	 * \param[in] p_r         The requirement object which is a sublement of the requirement identified by p_parentId
@@ -72,6 +78,8 @@ public:
 	 *
 	 * That means that p_reqId is a downstream requirement for p_coveredReq and p_coveredReq is an upstream
 	 * requirement for p_reqId.
+	 *
+	 *  This method is protected by __reqsByNameMutex as it can be called by several threads.
 	 * \param[in] file_id file id being parsed in for witch the method has been called
 	 * \param[in] p_reqId current requirement that covers p_coveredReq
 	 * \param[in] p_coveredReq Requirement covered by the current one
@@ -79,12 +87,21 @@ public:
 	void addExpectedCoveredRequirement(const QString& location, const QString& p_reqId, RequirementRef p_coveredReq);
 
 	/*!
-	 * \brief Add a file containing requirements and parse it
+	 * \brief Add a file containing requirements to the list of such files
 	 *
-	 * This method typically call the parse method on the file parser object.
 	 * \param[in] p  The file parser object that has to be taken into account. This must be a valid pointer.
 	 */
-	void addRequirementFile(IRequirementFilePtr p);
+	void addRequirementFile(RequirementFileAbstractPtr p);
+
+	/*!
+	 * \brief Update a requirement file so the object directly contains the requirements defined in it
+	 *
+	 * This operation cannot be realized during parsing as some requirements may be refused (defined several times,
+	 * incorrect definition, etc ...) by the global matrix. So the accepted requirement vector must be updated after
+	 * parsing.
+	 * \param[in] p  The file parser object that has to be taken into account. This must be a valid pointer.
+	 */
+	void updateRequirementFileWithAcceptedRequirements(RequirementFileAbstractPtr p);
 
 	/*!
 	 * \brief Compute the coverage values of files once they all have been parsed.
@@ -159,7 +176,7 @@ public:
 	 * \return
 	 * A pointer to the required file object
 	 */
-	IRequirementFilePtr getRequirementFile(const QString& p_fileID) const;
+	RequirementFileAbstractPtr getRequirementFile(const QString& p_fileID) const;
 
 	/*!
 	 * \brief Clear all the data contained in the model
@@ -212,7 +229,17 @@ private:
 	/*!
 	 * \brief Map of the file objects, accessible by file ID
 	 */
-	QMap<QString, IRequirementFilePtr> __filesByFileId;
+	QMap<QString, RequirementFileAbstractPtr> __filesByFileId;
+
+	/*!
+	 * \brief Mutex used to control access to __reqsByName (to avoid simultaneous writing)
+	 */
+	QMutex __reqsByNameMutex ;
+
+	/*!
+	 * \brief Mutex used to control access to __reqsByFileId (to avoid simultaneous writing)
+	 */
+	QMutex __reqsByFileIdMutex ;
 
 	/*!
 	 * \brief Builds the string representing the upstream and downstream files of the current one

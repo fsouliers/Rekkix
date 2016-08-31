@@ -13,7 +13,7 @@
 #include "ModelSngAnalysisErrors.h"
 
 RequirementFileAbstract::RequirementFileAbstract(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
-		: _avgCoverage(0.0), _cnfFile(p_cnfFile)
+		: QThread(), _avgCoverage(0.0), _cnfFile(p_cnfFile), _threadLaunched(false)
 {
 	// regex validy is verified while reading the configuration file, see ModelConfiguration
 	_regexReq.setPattern(_cnfFile[ModelConfiguration::REQFILE_ATTR_REQREGEX]);
@@ -73,8 +73,6 @@ void RequirementFileAbstract::computeCoverage()
 
 void RequirementFileAbstract::addUpstreamDocument(const QString& p_fileId, RequirementFileAbstract* p_file)
 {
-	qDebug() << "IRequirementFile::addUpstreamDocument " << _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] << " : trying to add " << p_fileId;
-
 	// If the document is already an upstream document, nothing to do
 	if (!_upstreamDocs.contains(p_fileId))
 	{
@@ -84,8 +82,6 @@ void RequirementFileAbstract::addUpstreamDocument(const QString& p_fileId, Requi
 
 void RequirementFileAbstract::addDownstreamDocument(const QString& p_fileId, RequirementFileAbstract* p_file)
 {
-	qDebug() << "IRequirementFile::addDownstreamDocument " << _cnfFile[ModelConfiguration::REQFILE_ATTR_ID] << " : trying to add " << p_fileId;
-
 	// If the document is already a downstream document, nothing to do
 	if (!_downstreamDocs.contains(p_fileId))
 	{
@@ -159,8 +155,6 @@ bool RequirementFileAbstract::_hasStoredAnyExpectedUpstreamRequirements(const QS
 	QRegularExpressionMatch cov_m = _regexCov.match(p_text);
 	if (cov_m.hasMatch())
 	{
-		qDebug() << "IRequirementFile::_hasExpectedUpstreamRequirements regex match :" << cov_m.capturedTexts() ;
-
 		// the real requirement list is only the group of the regex named REQFILE_GRPNAME_REQLST,
 		// each requirement must be separated by ModelConfiguration::REQFILE_ATTR_CMPSEPARATOR
 		QString tmp = cov_m.captured(ModelConfiguration::REQFILE_GRPNAME_REQLST);

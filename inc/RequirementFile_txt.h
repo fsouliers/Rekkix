@@ -16,6 +16,8 @@
  */
 class RequirementFile_txt : public RequirementFileAbstract
 {
+	Q_OBJECT
+
 public:
 
 	/*!

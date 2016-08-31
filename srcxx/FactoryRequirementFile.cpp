@@ -48,9 +48,9 @@ FactoryRequirementFile::~FactoryRequirementFile()
 {
 }
 
-IRequirementFilePtr FactoryRequirementFile::getRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
+RequirementFileAbstractPtr FactoryRequirementFile::getRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 {
-	IRequirementFilePtr retPtr = NULL ;
+	RequirementFileAbstractPtr retPtr = NULL ;
 
 	QString filename = p_cnfFile[ModelConfiguration::REQFILE_ATTR_PATH];
 	QString parser = p_cnfFile[ModelConfiguration::REQFILE_ATTR_PARSER];

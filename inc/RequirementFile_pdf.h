@@ -16,6 +16,8 @@
  */
 class RequirementFile_pdf : public RequirementFileAbstract
 {
+	Q_OBJECT
+
 public:
 
 	/*!

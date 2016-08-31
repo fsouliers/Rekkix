@@ -6,6 +6,7 @@
  */
 
 #include <QDebug>
+#include <QMutexLocker>
 
 #include "ModelSngReqMatrix.h"
 #include "ModelSngAnalysisErrors.h"
@@ -40,10 +41,10 @@ ModelSngReqMatrix::~ModelSngReqMatrix()
 
 void ModelSngReqMatrix::clear()
 {
-	QMap<QString, IRequirementFilePtr>::iterator it;
+	QMap<QString, RequirementFileAbstractPtr>::iterator it;
 	for (it = __filesByFileId.begin(); it != __filesByFileId.end() ; ++it)
 	{
-		IRequirementFilePtr p = it.value();
+		RequirementFileAbstractPtr p = it.value();
 		if (p) delete (p);
 
 		__filesByFileId[it.key()] = NULL;
@@ -53,14 +54,23 @@ void ModelSngReqMatrix::clear()
 	__reqsByFileId.clear();
 }
 
-void ModelSngReqMatrix::addRequirementFile(IRequirementFilePtr p)
+void ModelSngReqMatrix::addRequirementFile(RequirementFileAbstractPtr p)
 {
 	QString f_id = p->getFileId();
 
 	// If the file id is defined several times, then a configuration error is reported (see ModelConfiguration)
 	// ... so direct inserting is safe here
 	__filesByFileId.insert(f_id, p);
-	p->parseFile();
+}
+
+void ModelSngReqMatrix::updateRequirementFileWithAcceptedRequirements(RequirementFileAbstractPtr p)
+{
+	QMutexLocker l_rbf(&__reqsByFileIdMutex) ; // avoid simultaneous access
+
+	QString f_id = p->getFileId();
+
+	// If the file id is defined several times, then a configuration error is reported (see ModelConfiguration)
+	// ... so direct inserting is safe here
 	p->setRequirements(__reqsByFileId[f_id]);
 }
 
@@ -79,6 +89,7 @@ bool ModelSngReqMatrix::addDefinedRequirement(const QString& file_id, Requiremen
 		return (retval);
 	}
 
+	QMutexLocker l_rbn(&__reqsByNameMutex) ; // avoid simultaneous access
 	QString req_id = p_r.getId();
 	if (!__reqsByName.contains(req_id))
 	{
@@ -117,6 +128,7 @@ bool ModelSngReqMatrix::addDefinedRequirement(const QString& file_id, Requiremen
 
 	// If the retval is true, it means the requirement is actually defined in the
 	// current location --> store it in the __reqsByFileId map
+	QMutexLocker l_rbf(&__reqsByFileIdMutex) ; // avoid simultaneous writing
 	if (retval) __reqsByFileId[p_r.getLocationId()].append(&__reqsByName[req_id]);
 
 	return (retval);
@@ -126,6 +138,8 @@ void ModelSngReqMatrix::addExpectedCompositeRequirement(const QString& location,
                                                         const QString& p_parentId,
                                                         RequirementRef p_r)
 {
+	QMutexLocker l_rbn(&__reqsByNameMutex) ; // avoid simultaneous access
+
 	// The method has been called while there is no consistent «current requirement» parsing
 	// the requirement file
 	if (!__reqsByName.contains(p_parentId))
@@ -153,6 +167,8 @@ void ModelSngReqMatrix::addExpectedCoveredRequirement(const QString& location,
                                                       const QString& p_reqId,
                                                       RequirementRef p_coveredReq)
 {
+	QMutexLocker l_rbn(&__reqsByNameMutex) ; // avoid simultaneous access
+
 	// The method has been called while there is no consistent «current requirement» parsing
 	// the requirement file
 	if (!__reqsByName.contains(p_reqId))
@@ -214,13 +230,13 @@ void ModelSngReqMatrix::computeCoverage()
 
 		// Otherwize, the requirement can be taken into account
 		QString req_id = req.getId();
-		IRequirementFilePtr reqFile = req.getLocation();
+		RequirementFileAbstractPtr reqFile = req.getLocation();
 
 		// If any, downstream document can also be added
 		RequirementPtr dw_req = req.getDownstreamRequirement();
 		if (dw_req)
 		{
-			IRequirementFilePtr dw_reqFile = dw_req->getLocation();
+			RequirementFileAbstractPtr dw_reqFile = dw_req->getLocation();
 			if (dw_reqFile)
 			{
 				reqFile->addDownstreamDocument(dw_reqFile->getFileId(), dw_reqFile);
@@ -257,7 +273,7 @@ void ModelSngReqMatrix::computeCoverage()
 		// for the current one
 		foreach (RequirementPtr up_req, req.getUpstreamRequirements())
 		{
-			IRequirementFilePtr up_reqFile = up_req->getLocation();
+			RequirementFileAbstractPtr up_reqFile = up_req->getLocation();
 			if (up_reqFile)
 			{
 				reqFile->addUpstreamDocument(up_reqFile->getFileId(), up_reqFile);
@@ -293,7 +309,7 @@ void ModelSngReqMatrix::computeCoverage()
 	}
 
 	// Finally, the coverage for each file can be calculated
-	QMap<QString, IRequirementFilePtr>::iterator file_it ;
+	QMap<QString, RequirementFileAbstractPtr>::iterator file_it ;
 	for (file_it = __filesByFileId.begin(); file_it != __filesByFileId.end() ; ++file_it)
 	{
 		qDebug() << "ModelSngReqMatrix::computeCoverage : Computing coverage for " << file_it.key() ;
@@ -329,7 +345,7 @@ QVariant ModelSngReqMatrix::data(const QModelIndex &index, int role) const
 	if (role == Qt::DisplayRole)
 	{
 		retVal = QObject::trUtf8("ERREUR DATA");
-		IRequirementFilePtr f = __filesByFileId.values().at(index.row());
+		RequirementFileAbstractPtr f = __filesByFileId.values().at(index.row());
 		if (!f) return (retVal);
 
 		QString file_id = f->getFileId();
@@ -408,7 +424,7 @@ QModelIndex ModelSngReqMatrix::parent(const QModelIndex & /*index*/) const
 	return (QModelIndex());
 }
 
-IRequirementFilePtr ModelSngReqMatrix::getRequirementFile(const QString& p_fileID) const
+RequirementFileAbstractPtr ModelSngReqMatrix::getRequirementFile(const QString& p_fileID) const
 {
 	if (__filesByFileId.contains(p_fileID))
 	{
@@ -427,7 +443,7 @@ const QString ModelSngReqMatrix::getReportFileSummaryTable(const QString& p_writ
 	QString s_base(fact.getBaseString("summaryTable_line", p_writer, p_delimiter));
 
 	QString result = "";
-	QMap<QString, IRequirementFilePtr>::const_iterator it;
+	QMap<QString, RequirementFileAbstractPtr>::const_iterator it;
 	for (it = __filesByFileId.constBegin(); it != __filesByFileId.constEnd() ; ++it)
 	{
 		QString newline = s_base;
@@ -484,7 +500,7 @@ const QString ModelSngReqMatrix::getReportFileDetails(const QString& p_writer,
 
 	QString allFilesDetails = "";
 
-	QMap<QString, IRequirementFilePtr>::const_iterator it;
+	QMap<QString, RequirementFileAbstractPtr>::const_iterator it;
 	for (it = __filesByFileId.constBegin(); it != __filesByFileId.constEnd() ; ++it)
 	{
 		QString newfile = s_details;

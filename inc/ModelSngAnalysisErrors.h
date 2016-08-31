@@ -8,6 +8,7 @@
 #ifndef MODELSNGANALYSISERRORS_H_
 #define MODELSNGANALYSISERRORS_H_
 
+#include <QMutex>
 #include <QAbstractItemModel>
 
 #include "AnalysisError.h"
@@ -158,6 +159,11 @@ private:
 	 * \brief Map of the number of errors detected for each file id
 	 */
 	QMap<QString, int> __nbErrorsByFileId;
+
+	/*!
+	 * \brief Mutex used to lock access to __errors vector to avoid simultaneous writing
+	 */
+	QMutex __addErrorMutex ;
 };
 
 #endif /* MODELSNGANALYSISERRORS_H_ */

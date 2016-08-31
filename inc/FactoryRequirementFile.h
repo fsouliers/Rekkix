@@ -50,7 +50,7 @@ public:
 	 * \return
 	 * A pointer to the freshly built requirement file object or null if no parser seems acceptable
 	 */
-	static IRequirementFilePtr getRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
+	static RequirementFileAbstractPtr getRequirementFile(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile);
 };
 
 #endif /* FACTORYREQUIREMENTFILE_H_ */
