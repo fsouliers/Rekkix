@@ -22,6 +22,7 @@
 #include "FactoryReportBaseString.h"
 #include "AnalysisSngWaiterThread.h"
 #include "AnalysisSngStarterThread.h"
+#include "UiSettings.h"
 
 // Constructor #1
 Rekkix::Rekkix(QApplication * parent, bool setupUI)
@@ -31,6 +32,10 @@ Rekkix::Rekkix(QApplication * parent, bool setupUI)
 	// Set the application running the window
 	__app = parent;
 
+	// Load the application settings
+	SngSettings::instance() ;
+
+	// If needed prepare GUI
 	if (setupUI)
 	{
 		// Build GUI
@@ -51,6 +56,7 @@ Rekkix::Rekkix(QApplication * parent, bool setupUI)
 		this->tv_errors->setModel(&ModelSngAnalysisErrors::instance());
 	}
 
+	// Common initialization
 	__isBatchMode = false ;
 	__nbFiles = -1 ;
 }
@@ -134,6 +140,14 @@ void Rekkix::slt_loadConfigurationFile()
 	}
 }
 
+void Rekkix::slt_showSettingsDlg()
+{
+	UiSettings setDlg(this) ;
+	setDlg.setModal(true) ;
+	setDlg.show() ;
+	setDlg.exec() ;
+}
+
 void Rekkix::slt_startAnalysis()
 {
 	ModelConfiguration::CnfFileAttributesMapsByFileId_t files = __cnfModel.getConfiguredRequirementFiles();
@@ -167,7 +181,7 @@ void Rekkix::slt_startAnalysis()
 
 	// 3rd step start the the thread starting the other ones (main goal is not to interfere with Qt main loop)
 	AnalysisSngStarterThread::instance().setRegisteredFiles(registeredFiles) ;
-	AnalysisSngStarterThread::instance().release(20) ; // TODO 20 max threads at the same time ... should be configurable
+	AnalysisSngStarterThread::instance().release(SngSettings::instance().getNbParsingThreads()) ;
 	AnalysisSngStarterThread::instance().start() ;
 }
 

@@ -23,6 +23,7 @@
 #include "ModelCompositeReqs.h"
 #include "ModelReqs.h"
 #include "ModelConfigurationErrors.h"
+#include "SngSettings.h"
 
 /*!
  * \class Rekkix
@@ -68,6 +69,11 @@ public slots :
 	 * \brief generate the report as specified in the loaded configuration file
 	 */
 	void slt_generateReports();
+
+	/*!
+	 * \brief show the settings and help dialog
+	 */
+	void slt_showSettingsDlg() ;
 
 	/*!
 	 * \brief load a configuration file (from gui or from command line) and initialize gui accordingly

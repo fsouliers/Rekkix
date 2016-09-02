@@ -2,7 +2,7 @@
 # released under the terms of the GNU General Public License
 
 # Often changed parameters
-CONFIG += debug
+CONFIG += release
 VERSION = 0.3.0
 
 # The project is an application and we should avoid generating several configuration
@@ -69,7 +69,8 @@ macx:DESTDIR = ./bin/macx
 RESOURCES = ./resources/rekkix.qrc
 
 # user interface files
-FORMS += ./ui/Rekkix.ui
+FORMS += ./ui/Rekkix.ui \
+         ./ui/Settings.ui
 
 # headers
 HEADERS += ./inc/AnalysisError.h \
@@ -93,7 +94,10 @@ HEADERS += ./inc/AnalysisError.h \
            ./inc/RequirementFile_pdf.h \ 
            ./inc/RequirementFile_txt.h \
            ./inc/RequirementFileAbstract.h \
-           ./inc/RequirementFileAbstractZipped.h 
+           ./inc/RequirementFileAbstractZipped.h \
+           ./inc/SngSettings.h \
+           ./inc/UiSettings.h
+           
 
 # sources
 SOURCES += ./srcxx/AnalysisError.cpp \
@@ -118,6 +122,8 @@ SOURCES += ./srcxx/AnalysisError.cpp \
            ./srcxx/RequirementFile_pdf.cpp \
            ./srcxx/RequirementFile_txt.cpp \
            ./srcxx/RequirementFileAbstract.cpp \
-           ./srcxx/RequirementFileAbstractZipped.cpp
+           ./srcxx/RequirementFileAbstractZipped.cpp \
+           ./srcxx/SngSettings.cpp \
+           ./srcxx/UiSettings.cpp
            
 

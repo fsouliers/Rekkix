@@ -165,7 +165,16 @@
             <number>0</number>
            </property>
            <layout class="QGridLayout" name="gridLayout_12">
-            <property name="margin">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
              <number>0</number>
             </property>
             <item row="0" column="0" rowspan="2">
@@ -499,7 +508,7 @@
      <x>0</x>
      <y>0</y>
      <width>1142</width>
-     <height>30</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Fichier">
@@ -509,7 +518,14 @@
     <addaction name="actionOuvrir_fichier_de_configuration"/>
     <addaction name="actionQuitter"/>
    </widget>
+   <widget class="QMenu" name="menuPr_f_rences">
+    <property name="title">
+     <string>Édition</string>
+    </property>
+    <addaction name="actionPr_f_rences"/>
+   </widget>
    <addaction name="menu_Fichier"/>
+   <addaction name="menuPr_f_rences"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionQuitter">
@@ -520,6 +536,11 @@
   <action name="actionOuvrir_fichier_de_configuration">
    <property name="text">
     <string>Ouvrir fichier de configuration</string>
+   </property>
+  </action>
+  <action name="actionPr_f_rences">
+   <property name="text">
+    <string>Préférences</string>
    </property>
   </action>
  </widget>
@@ -607,11 +628,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionPr_f_rences</sender>
+   <signal>triggered()</signal>
+   <receiver>RekkixMW</receiver>
+   <slot>slt_showSettingsDlg()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>570</x>
+     <y>389</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>slt_loadConfigurationFile()</slot>
   <slot>slt_startAnalysis()</slot>
   <slot>slt_fileCoverageSummary_selected(QModelIndex)</slot>
   <slot>slt_generateReports()</slot>
+  <slot>slt_showSettingsDlg()</slot>
  </slots>
 </ui>
