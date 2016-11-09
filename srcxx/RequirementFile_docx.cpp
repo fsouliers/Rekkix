@@ -16,6 +16,7 @@
 
 static const QString DOCX_XML_BODY_NODE = "body";  //!< MS Word specific XML tag for body
 static const QString DOCX_XML_PARAGRAPH_NODE = "p";  //!< MS Word specific XML tag for paragraph
+static const QString DOCX_XML_DELETED_ELEMENT_NODE = "del";  //!< MS Word specific XML tag for deleted stuff
 
 RequirementFile_docx::RequirementFile_docx(const ModelConfiguration::CnfFileAttributesMap_t& p_cnfFile)
 		: RequirementFileAbstractZipped(p_cnfFile)
@@ -80,7 +81,25 @@ void RequirementFile_docx::parseFile()
 	QDomElement elt = textRoot->firstChildElement(DOCX_XML_PARAGRAPH_NODE);
 	for (; !elt.isNull(); elt = elt.nextSiblingElement(DOCX_XML_PARAGRAPH_NODE))
 	{
-		QString data = elt.text();
+		/*
+		 * Data cannot be retrieved with a simple direct "QString data = elt.text() ;" as the paragraph node can
+		 * contains deleted stuff that would be recognized as normal text. --> Text data must be retrieved ignoring
+		 * deleted text (that means nodes for deleted stuff must be removed before calling the "text()" method on the element.
+		 */
+		for (QDomNode n = elt.firstChild() ; !n.isNull() ; n = n.nextSibling())
+		{
+			if (n.isElement())
+			{
+				QDomElement e = n.toElement();
+				if (e.tagName() == DOCX_XML_DELETED_ELEMENT_NODE)
+				{
+					elt.removeChild(e) ;
+				}
+			}
+		}
+		QString data = elt.text() ;
+
+		// If, after analysis, the data string is empty ... nothing to do ...
 		if (data.isEmpty()) continue ;
 
 		// If the «requirement definition» regex matches, then nothing more to do with this paragraph

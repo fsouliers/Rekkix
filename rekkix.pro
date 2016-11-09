@@ -3,7 +3,7 @@
 
 # Often changed parameters
 CONFIG += release
-VERSION = 0.3.0
+VERSION = 0.4.0
 
 # The project is an application and we should avoid generating several configuration
 TEMPLATE = app
