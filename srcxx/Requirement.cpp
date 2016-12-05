@@ -74,6 +74,8 @@ double Requirement::getCoverage()
 			{
 				sum += r->getCoverage();
 			}
+
+			__coverage = sum / __composingReqs.count() ;
 		}
 	}
 
