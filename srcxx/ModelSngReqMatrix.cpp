@@ -628,7 +628,7 @@ const QString ModelSngReqMatrix::__getReportFileDetailsReqCoverage(const QString
 		if (covReq)
 		{
 			newline.replace("REKKIX_FILE_COV_COVERED_BY_ID", covReq->getId());
-			newline.replace("REKKIX_FILE_COV_COVERED_BY_LOCATION_ID", req->getLocationId());
+			newline.replace("REKKIX_FILE_COV_COVERED_BY_LOCATION_ID", covReq->getLocationId());
 		}
 		else
 		{
